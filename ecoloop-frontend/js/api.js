@@ -59,8 +59,8 @@ const AuthAPI = {
   },
   logout() {
     clearToken();
-    showToast('Logged out', 'info');
-    window.location.reload();
+    showToast('Logged out successfully', 'info');
+    setTimeout(() => window.location.reload(), 500);
   },
   getUser() {
     try { return JSON.parse(localStorage.getItem('ecosphere_user')); }
@@ -76,6 +76,15 @@ const ListingsAPI = {
     return await apiFetch(`/listings/${qs ? '?' + qs : ''}`);
   },
   async getOne(id) { return await apiFetch(`/listings/${id}`); },
+  // ── Admin Endpoints ──────────────────────────────────
+  getAdminStats: () => apiFetch('/admin/stats'),
+  getPendingListings: () => apiFetch('/admin/listings/pending'),
+  getAllListings: () => apiFetch('/admin/listings/all'),
+  verifyListing: (id, note = "") => apiFetch(`/admin/listings/${id}/verify`, { method: 'POST', body: JSON.stringify({ note }) }),
+  rejectListing: (id, note = "") => apiFetch(`/admin/listings/${id}/reject`, { method: 'POST', body: JSON.stringify({ note }) }),
+  getAllUsers: () => apiFetch('/admin/users'),
+  verifyUser: (id) => apiFetch(`/admin/users/${id}/verify`, { method: 'POST' }),
+  bootstrapAdmin: (email, secret) => apiFetch('/admin/bootstrap', { method: 'POST', body: JSON.stringify({ email, secret }) }),
   async create(payload) {
     return await apiFetch('/listings/', { method: 'POST', body: JSON.stringify(payload) });
   },
@@ -181,6 +190,15 @@ async function loadMarketplaceFromBackend(category) {
       }));
       
       // Override render function to use backend-linked quotes
+      const user = await AuthAPI.me();
+      const authLinks = document.getElementById('auth-links');
+      if (authLinks && user) {
+        authLinks.innerHTML = `
+          ${user.is_admin ? '<a href="#admin" class="nav-link admin-btn" style="color:var(--green-600); font-weight:700;">Admin Panel</a>' : ''}
+          <a href="#dashboard" class="nav-link">Dashboard</a>
+          <button onclick="handleLogout()" class="btn btn-outline">Logout</button>
+        `;
+      }
       const grid = document.getElementById('marketplace-grid');
       if (grid) {
         grid.innerHTML = APP.listings.map(l => `
@@ -492,4 +510,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // marketplace items are rendered dynamically, so we handle quote requests via delegation or updating render
 });
+
+// ── Global Handlers for HTML ───────────────────────
+function handleLogout() { AuthAPI.logout(); }
+function handleLogin()  { doLogin(); }
+function handleRegister() { doRegister(); }
+
+// ── Admin Panel Extras ──────────────
+// Injected into global scope if needed by dashboard
+window.handleVerifyListing = async (id) => {
+  if (confirm('Verify listing contents?')) {
+    try {
+      await ListingsAPI.verifyListing(id, "Content verified by EcoSphere Admin");
+      showToast('Listing verified!', 'success');
+      if (typeof renderAdmin === 'function') renderAdmin();
+    } catch (e) { showToast(e.message, 'error'); }
+  }
+};
+window.handleRejectListing = async (id) => {
+  if (confirm('Reject this listing?')) {
+    try {
+      await ListingsAPI.rejectListing(id, "Does not meet quality standards");
+      showToast('Listing rejected', 'info');
+      if (typeof renderAdmin === 'function') renderAdmin();
+    } catch (e) { showToast(e.message, 'error'); }
+  }
+};
 

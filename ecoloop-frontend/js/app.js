@@ -11,6 +11,27 @@ const APP = {
   userCompany: localStorage.getItem('ecosphere_company') || 'TechPlast Industries',
 };
 
+// ─── Toast System ──────────────────────────────────
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <div class="toast-content">
+      <span class="toast-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+      <span class="toast-msg">${message}</span>
+    </div>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; }, 10);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(20px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
 // ─── Green Score State ─────────────────────────────
 const scoreData = {
   criteria: [
@@ -52,6 +73,7 @@ function navigate(page) {
   if (page === 'marketplace') renderMarketplace();
   if (page === 'greenscore') renderGreenScore();
   if (page === 'leaderboard') renderLeaderboard();
+  if (page === 'admin') renderAdmin();
 }
 
 // ─── Default Data ─────────────────────────────────
@@ -193,7 +215,21 @@ async function aiSuggestDesc() {
   const title = document.getElementById('sell-title').value.trim();
   const category = document.getElementById('sell-category').value;
   if (!title) { showToast('Enter waste name first', 'error'); return; }
-  showToast('Connecting to AI service...', 'info');
+  
+  const descEl = document.getElementById('sell-desc');
+  descEl.placeholder = "AI is thinking...";
+  showToast('Generating professional description...', 'info');
+
+  // Generic fallback if AI fails
+  const fallback = `High-quality ${title} sourced from industrial ${category.toLowerCase() || 'processes'}. This material is clean, sorted, and ready for reuse in manufacturing or upcycling. Ideal for companies looking to improve their circular economy footprint through verified secondary raw materials.`;
+  
+  // This will be overridden by aiSuggestDescBackend if api.js is loaded
+  setTimeout(() => {
+    if (!descEl.value) {
+      descEl.value = fallback;
+      showToast('Generated professional template!', 'success');
+    }
+  }, 2000);
 }
 
 // ─── Green Score Rendering ──────────────────────────
@@ -271,17 +307,6 @@ async function getWasteInsight() {
   showToast('Connecting to AI insights service...', 'info');
 }
 
-// ─── Toast Notifications ──────────────────────────
-function showToast(msg, type = 'info') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `<span>${msg}</span>`;
-  container.appendChild(toast);
-  setTimeout(() => toast.classList.add('show'), 10);
-  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 4000);
-}
-
 // ─── Circular Economy Section ─────────────────────
 function initEconomyAnimation() {
   const items = document.querySelectorAll('.economy-node');
@@ -298,10 +323,76 @@ function subscribeNewsletter(inputId) {
   if (document.getElementById(inputId)) document.getElementById(inputId).value = '';
 }
 
+// ─── Admin Dashboard ──────────────────────────────
+async function renderAdmin() {
+  const statsGrid = document.getElementById('admin-stats');
+  const listEl = document.getElementById('admin-listings');
+  const userEl = document.getElementById('admin-users');
+  
+  if (!statsGrid || !listEl) return;
+  
+  try {
+    const stats = await ListingsAPI.getAdminStats();
+    statsGrid.innerHTML = `
+      <div class="stat-card"><h3>${stats.pending_verification || 0}</h3><p>Pending Verifications</p></div>
+      <div class="stat-card"><h3>${stats.total_users || 0}</h3><p>Total Companies</p></div>
+      <div class="stat-card"><h3>${stats.total_quotes || 0}</h3><p>Quote Requests</p></div>
+      <div class="stat-card"><h3>₹${((stats.revenue_paise || 0) / 100).toLocaleString()}</h3><p>Total Revenue</p></div>
+    `;
+
+    const pending = await ListingsAPI.getPendingListings();
+    listEl.innerHTML = pending && pending.length ? pending.map(l => `
+      <div class="admin-item" style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong style="display:block;">${l.title}</strong>
+          <small>${l.owner_company} | ${l.category}</small>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-sm btn-primary" onclick="handleVerifyListing(${l.id})">Verify</button>
+          <button class="btn btn-sm btn-outline" style="color:red;" onclick="handleRejectListing(${l.id})">Reject</button>
+        </div>
+      </div>
+    `).join('') : '<p style="padding:20px; color:#666;">No pending listings! 🎉</p>';
+
+    const users = await ListingsAPI.getAllUsers();
+    userEl.innerHTML = users && users.length ? users.slice(0, 10).map(u => `
+      <div class="admin-item" style="padding:10px; border-bottom:1px solid #eee; font-size:13px;">
+        <strong>${u.company_name}</strong><br>
+        <span style="color:#666;">${u.email}</span>
+      </div>
+    `).join('') : '<p style="padding:10px;">No users yet.</p>';
+
+  } catch (err) {
+    console.error('Admin Panel Error:', err);
+    statsGrid.innerHTML = `<p style="color:red; padding:20px;">Error loading admin data. Make sure you are an admin.</p>`;
+  }
+}
+
+async function handleVerifyListing(id) {
+  if (confirm('Verify this listing?')) {
+    try {
+      await ListingsAPI.verifyListing(id, "Content verified by EcoSphere Admin Team.");
+      showToast('Listing verified!', 'success');
+      renderAdmin();
+    } catch (e) { showToast(e.message, 'error'); }
+  }
+}
+
+async function handleRejectListing(id) {
+  if (confirm('Deactivate this listing?')) {
+    try {
+      await ListingsAPI.rejectListing(id, "Does not meet platform quality standards.");
+      showToast('Listing rejected.', 'info');
+      renderAdmin();
+    } catch (e) { showToast(e.message, 'error'); }
+  }
+}
+
 // ─── Init ─────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   navigate('home');
   renderMarketplace();
+  initEconomyAnimation();
 
   // Close auth modal on Escape or overlay click
   document.addEventListener('keydown', e => {
@@ -309,11 +400,13 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('auth-modal')?.classList.remove('show');
     }
   });
-  document.getElementById('auth-modal')?.addEventListener('click', e => {
-    if (e.target === document.getElementById('auth-modal')) {
-      document.getElementById('auth-modal').classList.remove('show');
-    }
-  });
+  
+  const modal = document.getElementById('auth-modal');
+  if (modal) {
+    modal.addEventListener('click', e => {
+      if (e.target === modal) modal.classList.remove('show');
+    });
+  }
 
   // Animate hero stats counter
   document.querySelectorAll('.hero-stat-num').forEach(el => {
