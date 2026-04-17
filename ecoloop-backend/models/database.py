@@ -4,6 +4,9 @@ from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 import enum
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ── Database URL ────────────────────────────────────
 # Uses PostgreSQL if DATABASE_URL is set in .env, otherwise falls back to SQLite

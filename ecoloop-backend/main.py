@@ -1,14 +1,16 @@
+
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
+
 from models.database import Base, engine, SessionLocal, User, Listing, GreenScore
 from core.auth import hash_password
 from core.green_score import get_or_create_score
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 # ── Create tables ──────────────────────────────────
 Base.metadata.create_all(bind=engine)
@@ -28,6 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # ── Routers ────────────────────────────────────────
 from routers import auth, listings, quotes, greenscore, ai as ai_router, payments, admin
 
@@ -38,6 +41,26 @@ app.include_router(greenscore.router,  prefix="/api")
 app.include_router(ai_router.router,   prefix="/api")
 app.include_router(payments.router,    prefix="/api")
 app.include_router(admin.router,       prefix="/api")
+
+
+# ── Static Files (Frontend) ───────────────────────
+frontend_path = os.path.join(os.path.dirname(__file__), '../ecoloop-frontend')
+app.mount("/css", StaticFiles(directory=os.path.join(frontend_path, "css")), name="css")
+app.mount("/js", StaticFiles(directory=os.path.join(frontend_path, "js")), name="js")
+app.mount("/assets", StaticFiles(directory=os.path.join(frontend_path, "assets")), name="assets")
+
+# Serve index.html for the SPA
+@app.get("/", response_class=HTMLResponse)
+async def serve_index():
+    return FileResponse(os.path.join(frontend_path, "index.html"))
+
+# Optional: catch-all for SPA routes (e.g., /marketplace, /sell, etc.)
+@app.get("/{full_path:path}", response_class=HTMLResponse)
+async def spa_catch_all(full_path: str):
+    # Only serve index.html for non-API, non-static routes
+    if full_path.startswith("api/") or full_path.startswith("css/") or full_path.startswith("js/") or full_path.startswith("assets/"):
+        return
+    return FileResponse(os.path.join(frontend_path, "index.html"))
 
 # ── Seed data ──────────────────────────────────────
 def seed_db():
