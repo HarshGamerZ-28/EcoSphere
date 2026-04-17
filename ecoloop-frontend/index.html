@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoSphere — Transform Industrial Waste into Valuable Resources</title>
+  <meta name="description" content="India's leading B2B circular economy platform. Connect companies so waste of one becomes raw material of another. Powered by Gemini AI." />
+  <link rel="stylesheet" href="static/css/style.css" />
+  <link rel="icon" type="image/png" href="static/assets/logo.jpeg" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════ -->
+<nav class="navbar">
+  <div class="nav-logo" onclick="navigate('home')" style="cursor:pointer">
+    <div class="nav-logo-icon">
+      <img src="static/assets/logo.jpeg" alt="EcoSphere Logo" style="height:100%; width:100%; object-fit:contain;">
+    </div>
+    <div>
+      <div class="nav-logo-title">EcoSphere</div>
+      <div class="nav-logo-sub">By IA (Innovators Arena)</div>
+    </div>
+  </div>
+
+  <div class="nav-links">
+    <button class="nav-link active" data-page="home" onclick="navigate('home')">Home</button>
+    <button class="nav-link" data-page="marketplace" onclick="navigate('marketplace')">Marketplace</button>
+    <button class="nav-link" data-page="sell" onclick="navigate('sell')">Sell Waste</button>
+    <button class="nav-link" data-page="matcher" onclick="navigate('matcher')">AI Matcher</button>
+    <button class="nav-link" data-page="greenscore" onclick="navigate('greenscore')">Green Score</button>
+    <button class="nav-link" data-page="contact" onclick="navigate('contact')">Contact</button>
+  </div>
+
+  <div class="nav-actions">
+
+    <button class="btn btn-ghost btn-sm" id="nav-login-btn" onclick="openAuthModal('login')">Log In</button>
+    <div id="nav-user-chip" style="display:none;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 12px;background:var(--green-50);border:1px solid var(--green-100);border-radius:var(--radius-full);font-size:13px;font-weight:600;color:var(--green-700);cursor:pointer;" onclick="navigate('greenscore')">
+        <span>🌿</span><span class="chip-name">User</span>
+      </div>
+      <button class="btn btn-ghost btn-xs" onclick="AuthAPI.logout()" style="color:var(--text-muted);font-size:11px;">Logout</button>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="navigate('sell')">Get Started</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     PAGES WRAPPER
+═══════════════════════════════════════ -->
+<div class="page-wrap">
+
+<!-- ─── HOME PAGE ─── -->
+<div id="page-home" class="page active">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div>
+          <div class="hero-badge">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5C4 1.5 1.5 4 1.5 7S4 12.5 7 12.5 12.5 10 12.5 7 10 1.5 7 1.5z" stroke="#1e7a3e" stroke-width="1.3"/><path d="M5 7l1.5 1.5L9.5 5" stroke="#1e7a3e" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Circular Economy Platform
+          </div>
+          <h1 class="hero-title">
+            Transform Industrial<br>Waste into<br>
+            <span>Valuable Resources</span>
+          </h1>
+          <p class="hero-desc">Connect with verified manufacturers and turn your industrial byproducts into revenue. Build sustainable supply chains while reducing environmental impact — powered by Gemini AI.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary btn-xl" onclick="navigate('sell')">Get Started →</button>
+            <button class="btn btn-outline btn-xl" onclick="navigate('marketplace')">Explore Marketplace</button>
+          </div>
+          <div class="hero-stats">
+            <div>
+              <div class="hero-stat-num">500+</div>
+              <div class="hero-stat-label">Active Companies</div>
+            </div>
+            <div>
+              <div class="hero-stat-num">10K+</div>
+              <div class="hero-stat-label">Tonnes Exchanged</div>
+            </div>
+            <div>
+              <div class="hero-stat-num">₹50Cr</div>
+              <div class="hero-stat-label">Value Generated</div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-circle-wrap">
+            <div class="hero-circle-outer">
+              <div class="hero-circle-inner" style="background:#f1edea; padding:8px; border-radius:16px;">
+                <img src="static/assets/logo.jpeg" alt="EcoSphere Logo" style="width:100%; height:100%; object-fit:contain;">
+              </div>
+            </div>
+            <div class="hero-node" style="position:absolute;top:30px;right:20px;">
+              <div class="hero-node-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="10" rx="2" stroke="#1e7a3e" stroke-width="1.4"/><path d="M6 8h6M6 11h4" stroke="#1e7a3e" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+              <div><div class="hero-node-label">Manufacturing Waste</div><div class="hero-node-sub">Listed daily</div></div>
+            </div>
+            <div class="hero-node" style="position:absolute;bottom:60px;left:10px;">
+              <div class="hero-node-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3L13 7H10V15H8V7H5L9 3Z" fill="#1e7a3e"/></svg></div>
+              <div><div class="hero-node-label">Raw Material</div><div class="hero-node-sub">For production</div></div>
+            </div>
+            <div class="hero-node" style="position:absolute;bottom:50px;right:10px;">
+              <div class="hero-node-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 14C4 11.79 6.24 10 9 10s5 1.79 5 4H4z" fill="#1e7a3e"/><circle cx="9" cy="6" r="3" fill="#1e7a3e"/></svg></div>
+              <div><div class="hero-node-label">Verified Buyers</div><div class="hero-node-sub">512 companies</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY ECOSPHERE -->
+  <section class="section" style="background:white;">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Why Choose EcoSphere?</h2>
+        <p class="section-subtitle">Our platform makes it easy to participate in the circular economy and unlock value from industrial waste.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" stroke="#1e7a3e" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div class="feature-title">Reduce Industrial Waste</div>
+          <p class="feature-desc">Convert your manufacturing byproducts into resources for other industries. Zero waste to landfill goal becomes achievable.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="#1e7a3e" stroke-width="1.8"/></svg></div>
+          <div class="feature-title">Lower Production Costs</div>
+          <p class="feature-desc">Source quality raw materials at competitive prices directly from verified industrial suppliers across India.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M8 12h8M12 8v8" stroke="#1e7a3e" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="#1e7a3e" stroke-width="1.8"/></svg></div>
+          <div class="feature-title">Build Sustainable Supply Chains</div>
+          <p class="feature-desc">Create closed-loop systems where waste from one process becomes input for another. Real circular economy.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4" stroke="#1e7a3e" stroke-width="2" stroke-linecap="round"/><path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10z" stroke="#1e7a3e" stroke-width="1.8"/></svg></div>
+          <div class="feature-title">Connect with Verified Companies</div>
+          <p class="feature-desc">All participants are verified businesses with documented compliance, GST registration, and quality certifications.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI HIGHLIGHT -->
+  <section class="section" style="background:var(--green-50);">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;">
+        <div>
+          <div class="hero-badge" style="margin-bottom:20px;">🤖 Powered by Gemini AI</div>
+          <h2 style="font-size:36px;font-weight:800;margin-bottom:16px;font-family:var(--font-head);">AI Matches Waste to<br><span class="text-green">the Right Buyer</span></h2>
+          <p style="color:var(--text-secondary);line-height:1.7;margin-bottom:28px;">Our Gemini AI analyzes your waste composition, quantity, location, and compliance requirements — then instantly finds verified buyers who can use it as raw material. No more manual searching.</p>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:32px;">
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:24px;height:24px;background:var(--green-100);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5L10 3" stroke="#1e7a3e" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+              <p style="font-size:14px;color:var(--text-secondary);">Scans 500+ verified buyers and matches by material compatibility</p>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:24px;height:24px;background:var(--green-100);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5L10 3" stroke="#1e7a3e" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+              <p style="font-size:14px;color:var(--text-secondary);">Calculates CO₂ diversion impact and GreenScore points earned</p>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:24px;height:24px;background:var(--green-100);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5L10 3" stroke="#1e7a3e" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+              <p style="font-size:14px;color:var(--text-secondary);">Verifies compliance (CPCB, GST, MSDS) before recommending matches</p>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-lg" onclick="navigate('matcher')">Try AI Matcher →</button>
+        </div>
+        <div>
+          <div class="card" style="border-color:var(--green-200);">
+            <div class="ai-badge" style="margin-bottom:14px;">🤖 AI Analysis</div>
+            <div style="background:var(--green-50);border-radius:var(--radius-md);padding:14px;font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:16px;border-left:3px solid var(--green-400);">Matched HDPE-grade plastic waste with 3 verified recyclers. GreenMetal ranked highest — same state, food-grade certified, 500T/month capacity. CO₂ savings: 2.1 tonnes if diverted from landfill.</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="border:2px solid var(--green-400);border-radius:var(--radius-md);padding:14px;position:relative;">
+                <div style="position:absolute;top:0;right:0;background:var(--green-700);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:0 var(--radius-md) 0 var(--radius-sm);">BEST MATCH</div>
+                <div style="display:flex;gap:10px;align-items:center;">
+                  <div style="width:42px;height:42px;border-radius:50%;background:var(--green-50);border:2px solid var(--green-200);display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0;"><span style="font-family:var(--font-head);font-size:14px;font-weight:800;color:var(--green-700);">94</span><span style="font-size:9px;color:var(--text-muted);">%</span></div>
+                  <div><div style="font-weight:700;font-family:var(--font-head);font-size:14px;">PlasCycle India</div><div style="font-size:12px;color:var(--text-muted);">Plastic Recycler · Pune</div></div>
+                </div>
+                <div style="height:4px;background:var(--green-100);border-radius:2px;margin:10px 0;overflow:hidden;"><div style="width:94%;height:100%;background:linear-gradient(90deg,var(--green-400),var(--green-700));border-radius:2px;"></div></div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;"><span class="badge badge-green">Food-grade OK</span><span class="badge badge-blue">₹40–55/kg</span><span class="badge badge-green">CPCB Reg.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CIRCULAR ECONOMY IN ACTION -->
+  <section class="section" style="background:white;">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">The Circular Economy in Action</h2>
+        <p class="section-subtitle">See how waste flows through our platform, creating value at every step of the chain.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative;">
+        <div style="position:absolute;top:50%;left:33%;right:33%;height:2px;background:var(--green-200);transform:translateY(-50%);z-index:0;"></div>
+        <div class="economy-node card" style="z-index:1;text-align:left;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div style="width:44px;height:44px;background:var(--green-700);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="5" width="16" height="12" rx="2" stroke="white" stroke-width="1.8"/><path d="M7 9h8M7 13h5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <div><div style="font-family:var(--font-head);font-weight:700;">AutoParts Ltd</div><div style="font-size:12px;color:var(--text-muted);">Manufacturer</div></div>
+          </div>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Produces automotive components, generates aluminum waste</p>
+          <span class="badge badge-amber">Metal Scrap →</span>
+        </div>
+        <div class="economy-node card" style="z-index:1;text-align:left;border-color:var(--green-300);">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div style="width:44px;height:44px;background:var(--green-600);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 4C7.13 4 4 7.13 4 11s3.13 7 7 7 7-3.13 7-7-3.13-7-7-7z" stroke="white" stroke-width="1.8" fill="none"/><path d="M8 11l2 2 4-4" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div><div style="font-family:var(--font-head);font-weight:700;">GreenMetal Inc</div><div style="font-size:12px;color:var(--text-muted);">Recycler</div></div>
+          </div>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Processes scrap metal into recycled aluminum ingots</p>
+          <span class="badge badge-green">Recycled Aluminum →</span>
+        </div>
+        <div class="economy-node card" style="z-index:1;text-align:left;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div style="width:44px;height:44px;background:var(--green-700);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M4 18h14M7 18V10l4-4 4 4v8" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div><div style="font-family:var(--font-head);font-weight:700;">PackageCo</div><div style="font-size:12px;color:var(--text-muted);">Producer</div></div>
+          </div>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Uses recycled aluminum to manufacture beverage cans</p>
+          <span class="badge badge-blue">Aluminum Cans</span>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:28px;">
+        <div style="display:inline-flex;align-items:center;gap:10px;padding:10px 24px;background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--radius-full);">
+          <svg width="18" height="18" fill="none" viewBox="0 0 18 18"><path d="M9 2C5.13 2 2 5.13 2 9s3.13 7 7 7 7-3.13 7-7S12.87 2 9 2z" stroke="#1e7a3e" stroke-width="1.5" fill="none"/><path d="M6 9l2 2 4-4" stroke="#1e7a3e" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span style="font-size:14px;font-weight:600;color:var(--green-700);">Cycle continues — closing the loop</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GREEN SCORE TEASER -->
+  <section class="section" style="background:linear-gradient(135deg,var(--green-800),var(--green-600));">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;color:white;">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:7px;padding:5px 14px;background:rgba(255,255,255,0.15);border-radius:var(--radius-full);font-size:13px;font-weight:600;margin-bottom:20px;">🌿 GreenScore™ System</div>
+          <h2 style="font-size:36px;font-weight:800;margin-bottom:16px;font-family:var(--font-head);">Earn Green Points.<br>Unlock Real Benefits.</h2>
+          <p style="opacity:0.85;line-height:1.7;margin-bottom:28px;">Every waste listing, exchange, and compliance document earns your company Green Points. Reach Gold tier to unlock government incentives, carbon certificates, and priority marketplace placement.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;">
+            <div style="background:rgba(255,255,255,0.1);border-radius:var(--radius-md);padding:14px;">
+              <div style="font-size:22px;font-weight:800;font-family:var(--font-head);">2,840</div>
+              <div style="font-size:12px;opacity:0.75;margin-top:2px;">Tonnes CO₂ saved</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.1);border-radius:var(--radius-md);padding:14px;">
+              <div style="font-size:22px;font-weight:800;font-family:var(--font-head);">Gold</div>
+              <div style="font-size:12px;opacity:0.75;margin-top:2px;">Top tier unlocks incentives</div>
+            </div>
+          </div>
+          <button class="btn btn-lg" style="background:white;color:var(--green-800);font-weight:700;" onclick="navigate('greenscore')">View My Green Score →</button>
+        </div>
+        <div>
+          <div style="display:grid;grid-template-columns:1fr;gap:12px;">
+            <div style="background:rgba(255,255,255,0.12);border-radius:var(--radius-lg);padding:18px;display:flex;align-items:center;gap:14px;">
+              <div style="width:42px;height:42px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🌱</div>
+              <div><div style="font-weight:700;font-family:var(--font-head);margin-bottom:2px;">Bronze (0–499 pts)</div><div style="font-size:13px;opacity:0.8;">Platform listing + basic analytics</div></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.18);border-radius:var(--radius-lg);padding:18px;display:flex;align-items:center;gap:14px;border:1.5px solid rgba(255,255,255,0.3);">
+              <div style="width:42px;height:42px;background:rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">⚡</div>
+              <div><div style="font-weight:700;font-family:var(--font-head);margin-bottom:2px;">Silver (500–999 pts)</div><div style="font-size:13px;opacity:0.8;">Priority listing + AI match alerts + GST reports</div></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.12);border-radius:var(--radius-lg);padding:18px;display:flex;align-items:center;gap:14px;">
+              <div style="width:42px;height:42px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🏆</div>
+              <div><div style="font-weight:700;font-family:var(--font-head);margin-bottom:2px;">Gold (1000+ pts)</div><div style="font-size:13px;opacity:0.8;">Featured badge + Carbon certificate + Govt incentives</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+<!-- END HOME -->
+
+<!-- ─── MARKETPLACE PAGE ─── -->
+<div id="page-marketplace" class="page">
+  <section class="section-sm" style="background:var(--green-50);border-bottom:1px solid var(--border);">
+    <div class="container">
+      <h1 style="font-family:var(--font-head);font-size:36px;font-weight:800;margin-bottom:8px;">Marketplace</h1>
+      <p style="color:var(--text-muted);">Browse available industrial waste listings from verified companies across India.</p>
+    </div>
+  </section>
+  <section class="section-sm">
+    <div class="container">
+      <div class="marketplace-header">
+        <div class="marketplace-filters">
+          <button class="filter-btn active" onclick="filterMarketplace(this,'All')">All</button>
+          <button class="filter-btn" onclick="filterMarketplace(this,'Plastic Scrap')">Plastic</button>
+          <button class="filter-btn" onclick="filterMarketplace(this,'Metal Waste')">Metal</button>
+          <button class="filter-btn" onclick="filterMarketplace(this,'Chemical Byproduct')">Chemical</button>
+          <button class="filter-btn" onclick="filterMarketplace(this,'Textile Waste')">Textile</button>
+          <button class="filter-btn" onclick="filterMarketplace(this,'Electronic Waste')">E-Waste</button>
+          <button class="filter-btn" onclick="filterMarketplace(this,'Paper Waste')">Paper</button>
+          <button class="filter-btn" onclick="filterMarketplace(this,'Organic Waste')">Organic</button>
+        </div>
+        <button class="btn btn-primary btn-md" onclick="navigate('sell')">+ List Waste</button>
+      </div>
+      <div class="marketplace-grid" id="marketplace-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ─── AI MATCHER PAGE ─── -->
+<div id="page-matcher" class="page">
+  <section class="section-sm" style="background:var(--green-50);border-bottom:1px solid var(--border);">
+    <div class="container">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div>
+          <div class="ai-badge" style="margin-bottom:8px;">🤖 Gemini AI Powered</div>
+          <h1 style="font-family:var(--font-head);font-size:36px;font-weight:800;margin-bottom:8px;">AI Waste Matcher</h1>
+          <p style="color:var(--text-muted);">Describe your waste and our AI instantly finds the best buyers from 500+ verified companies.</p>
+        </div>
+        <button class="btn btn-ghost btn-md" onclick="openApiModal()" style="margin-left:auto;">⚙️ Configure Gemini API</button>
+      </div>
+    </div>
+  </section>
+  <section class="section-sm">
+    <div class="container">
+      <div class="matcher-layout">
+        <!-- LEFT: Form -->
+        <div>
+          <div class="card">
+            <h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:20px;font-size:16px;">Describe Your Waste</h3>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div class="form-group">
+                <label class="form-label">Waste Material Name *</label>
+                <input id="matcher-name" class="form-input" type="text" placeholder="e.g. HDPE Granules, Aluminum Chips…" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Category *</label>
+                <select id="matcher-cat" class="form-select">
+                  <option value="">Select waste category</option>
+                  <option>Plastic Scrap</option>
+                  <option>Metal Waste</option>
+                  <option>Chemical Byproduct</option>
+                  <option>Textile Waste</option>
+                  <option>Electronic Waste</option>
+                  <option>Paper Waste</option>
+                  <option>Organic Waste</option>
+                  <option>Rubber / Polymer</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Quantity Available</label>
+                <input id="matcher-qty" class="form-input" type="text" placeholder="e.g. 500 kg, 2000 L, 10 tonnes" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Material Description / Properties</label>
+                <textarea id="matcher-desc" class="form-textarea" placeholder="e.g. food-grade, high purity 99.5%, moisture content 5%, ISO certified…"></textarea>
+              </div>
+              <button class="btn btn-primary btn-lg" id="matcher-btn" onclick="runAIMatcher()" style="width:100%;">
+                🤖 Find AI Matches
+              </button>
+              <div class="divider" style="margin:0;"></div>
+              <button class="btn btn-ghost btn-md" id="insight-btn" onclick="getWasteInsight()" style="width:100%;">
+                🔍 Get AI Insights First
+              </button>
+              <div id="insight-box" style="display:none;background:var(--green-50);border-radius:var(--radius-md);padding:14px;font-size:13px;color:var(--text-secondary);line-height:1.65;border:1px solid var(--green-100);">
+                <strong style="color:var(--green-700);display:block;margin-bottom:8px;">AI Waste Insights:</strong>
+                <div id="insight-text"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- RIGHT: Results -->
+        <div>
+          <div id="matcher-thinking" class="ai-thinking-bar">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <span style="font-size:13px;color:var(--text-secondary);" id="thinking-msg">Analyzing waste composition…</span>
+          </div>
+          <div id="matcher-reasoning" class="ai-reasoning-box" style="display:none;"></div>
+          <div id="matcher-results">
+            <div class="empty-state">
+              <div class="empty-state-icon" style="font-size:28px;">🤖</div>
+              <p style="margin-top:12px;">Fill in your waste details and click<br><strong>Find AI Matches</strong> to get started.</p>
+              <p style="margin-top:8px;font-size:13px;">Add your Gemini API key for real AI-powered results.</p>
+              <button class="btn btn-outline btn-md" style="margin-top:16px;" onclick="openApiModal()">🔑 Add Gemini API Key</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ─── SELL WASTE PAGE ─── -->
+<div id="page-sell" class="page">
+  <section class="section-sm" style="background:var(--green-50);border-bottom:1px solid var(--border);">
+    <div class="container">
+      <h1 style="font-family:var(--font-head);font-size:36px;font-weight:800;margin-bottom:8px;">List Your Waste</h1>
+      <p style="color:var(--text-muted);">Submit your industrial waste listing and connect with verified buyers instantly.</p>
+    </div>
+  </section>
+  <section class="section-sm">
+    <div class="container-sm">
+      <div class="card sell-form-card" id="sell-form">
+        <!-- Section 1 -->
+        <div class="form-section-title"><div class="step-circle">1</div> Waste Information</div>
+        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:28px;">
+          <div class="form-group">
+            <label class="form-label">Waste Material Name *</label>
+            <input id="sell-title" class="form-input" type="text" placeholder="e.g. HDPE Granules, Aluminum Chips" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category *</label>
+              <select id="sell-category" class="form-select">
+                <option value="">Select category</option>
+                <option>Plastic Scrap</option>
+                <option>Metal Waste</option>
+                <option>Chemical Byproduct</option>
+                <option>Textile Waste</option>
+                <option>Electronic Waste</option>
+                <option>Paper Waste</option>
+                <option>Organic Waste</option>
+                <option>Rubber / Polymer</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Quantity Available *</label>
+              <input id="sell-qty" class="form-input" type="text" placeholder="e.g. 500 kg" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Price (₹/kg) *</label>
+              <input id="sell-price" class="form-input" type="number" min="0" placeholder="45" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location *</label>
+              <input id="sell-location" class="form-input" type="text" placeholder="City, State" />
+            </div>
+          </div>
+          <div class="form-group">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <label class="form-label" style="margin:0;">Description</label>
+              <button id="ai-desc-btn" class="btn btn-ghost btn-sm" onclick="aiSuggestDesc()">✨ AI Generate Description</button>
+            </div>
+            <textarea id="sell-desc" class="form-textarea" placeholder="Describe material properties, condition, purity, any certifications…"></textarea>
+            <span class="form-hint">AI can auto-generate a professional description for you</span>
+          </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="form-section-title"><div class="step-circle">2</div> Company Details</div>
+        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:28px;">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Company Name</label>
+              <input class="form-input" type="text" value="TechPlast Industries" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">GST Number</label>
+              <input class="form-input" type="text" placeholder="27AABCT1332L1ZB" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Contact Name</label>
+              <input class="form-input" type="text" placeholder="Your name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input class="form-input" type="tel" placeholder="+91 98765 43210" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="form-section-title"><div class="step-circle">3</div> Compliance Documents</div>
+        <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:32px;">
+          <div class="upload-zone" onclick="document.getElementById('compliance-file').click()">
+            <input type="file" id="compliance-file" style="display:none" onchange="handleFileUpload(this)">
+            <div id="upload-idle">
+              <div style="font-size:28px;margin-bottom:8px;">📄</div>
+              <div style="font-weight:600;font-family:var(--font-head);margin-bottom:4px;">Upload MSDS / Test Reports</div>
+              <div style="font-size:13px;color:var(--text-muted);">PDF, JPG, PNG up to 10MB</div>
+            </div>
+            <div id="upload-progress" style="display:none">
+              <div class="spinner spinner-dark" style="margin: 0 auto 10px;"></div>
+              <div style="font-size:14px;font-weight:600;">Uploading document…</div>
+            </div>
+          </div>
+
+          <script>
+            async function handleFileUpload(input) {
+              const file = input.files[0];
+              if (!file) return;
+
+              // Validate file size (10MB)
+              if (file.size > 10 * 1024 * 1024) {
+                showToast('File size exceeds 10MB limit', 'error');
+                input.value = '';
+                return;
+              }
+
+              const idleEl = document.getElementById('upload-idle');
+              const progressEl = document.getElementById('upload-progress');
+              
+              idleEl.style.display = 'none';
+              progressEl.style.display = 'block';
+
+              try {
+                // Call the API via the GreenScoreAPI object (defined in api.js)
+                const result = await GreenScoreAPI.submitCompliance('Compliance Doc', file);
+                showToast(result.message || 'File uploaded successfully!', 'success');
+                
+                // Award points locally for immediate feedback if APP object exists
+                if (window.awardGreenPoints) awardGreenPoints(result.pts || 40, 'Compliance document verified');
+              } catch (err) {
+                console.error('Upload error:', err);
+                showToast('Upload failed: ' + err.message, 'error');
+              } finally {
+                idleEl.style.display = 'block';
+                progressEl.style.display = 'none';
+                input.value = '';
+              }
+            }
+          </script>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;"><input type="checkbox" /> GST Registered</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;"><input type="checkbox" /> CPCB Compliant</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;"><input type="checkbox" /> ISO Certified</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;"><input type="checkbox" /> MSDS Available</label>
+          </div>
+        </div>
+
+        <div style="background:var(--green-50);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;">🌿</span>
+          <p style="font-size:13px;color:var(--green-700);">Listing this waste will earn you <strong>~45 GreenScore Points</strong> and contribute to reducing industrial landfill waste in India.</p>
+        </div>
+        <button class="btn btn-primary btn-xl" style="width:100%;" onclick="submitListing()">
+          Submit Listing →
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ─── GREEN SCORE PAGE ─── -->
+<div id="page-greenscore" class="page">
+  <section class="section-sm" style="background:var(--green-50);border-bottom:1px solid var(--border);">
+    <div class="container">
+      <h1 style="font-family:var(--font-head);font-size:36px;font-weight:800;margin-bottom:8px;">Green Score Dashboard</h1>
+      <p style="color:var(--text-muted);">Track your sustainability impact and earn rewards for circular economy participation.</p>
+    </div>
+  </section>
+  <section class="section-sm">
+    <div class="container">
+      <div class="score-layout">
+        <!-- Left -->
+        <div>
+          <!-- Score Hero Card -->
+          <div class="score-hero-card" style="margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+              <div style="position:relative;width:110px;height:110px;flex-shrink:0;">
+                <svg class="score-ring-svg" width="110" height="110" viewBox="0 0 110 110">
+                  <circle cx="55" cy="55" r="42" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="8"/>
+                  <circle id="score-ring-fill" cx="55" cy="55" r="42" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="8" stroke-dasharray="263" stroke-dashoffset="70" stroke-linecap="round" style="transition:stroke-dashoffset 1s ease;"/>
+                </svg>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                  <span id="score-num" style="font-family:var(--font-head);font-size:26px;font-weight:800;color:white;line-height:1;">720</span>
+                  <span style="font-size:12px;opacity:0.75;color:white;">/ 1000</span>
+                </div>
+              </div>
+              <div style="flex:1;color:white;">
+                <div style="font-family:var(--font-head);font-size:22px;font-weight:800;margin-bottom:4px;">TechPlast Industries</div>
+                <div style="opacity:0.8;margin-bottom:12px;font-size:14px;">Mumbai, Maharashtra</div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  <span style="background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;">⚡ Silver Tier</span>
+                  <span style="background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:999px;font-size:13px;">280 pts to Gold</span>
+                </div>
+              </div>
+              <div style="color:white;text-align:right;">
+                <div style="font-size:13px;opacity:0.75;margin-bottom:6px;">Monthly progress</div>
+                <div style="font-family:var(--font-head);font-size:22px;font-weight:800;">+445 pts</div>
+                <div style="font-size:12px;opacity:0.7;">this month</div>
+              </div>
+            </div>
+          </div>
+          <!-- Monthly Stats -->
+          <div class="grid-cols-2" style="gap:12px;margin-bottom:20px;">
+            <div class="metric-mini"><div class="metric-mini-label">Waste Listed</div><div class="metric-mini-val">+180</div></div>
+            <div class="metric-mini"><div class="metric-mini-label">Deals Closed</div><div class="metric-mini-val">+240</div></div>
+            <div class="metric-mini"><div class="metric-mini-label">CO₂ Saved (kg)</div><div class="metric-mini-val">+120</div></div>
+            <div class="metric-mini"><div class="metric-mini-label">Compliance Pts</div><div class="metric-mini-val">+80</div></div>
+          </div>
+          <!-- Criteria Breakdown -->
+          <div class="card">
+            <h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:16px;">Score Breakdown</h3>
+            <div class="score-criteria" id="criteria-list"><!-- Rendered by JS --></div>
+          </div>
+        </div>
+        <!-- Right -->
+        <div>
+          <div class="card" style="margin-bottom:16px;">
+            <h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:16px;">Recent Activity</h3>
+            <div id="activity-list"><!-- Rendered by JS --></div>
+          </div>
+          <!-- How to improve -->
+          <div class="card" style="background:var(--green-50);border-color:var(--green-200);">
+            <h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:14px;color:var(--green-800);">🚀 Reach Gold Faster</h3>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;gap:10px;align-items:center;font-size:13px;"><span style="color:var(--green-600);font-weight:700;min-width:20px;">+84</span><span style="color:var(--text-secondary);">Complete zero-waste commitment form</span></div>
+              <div style="display:flex;gap:10px;align-items:center;font-size:13px;"><span style="color:var(--green-600);font-weight:700;min-width:20px;">+60</span><span style="color:var(--text-secondary);">Upload ISO or CPCB certification</span></div>
+              <div style="display:flex;gap:10px;align-items:center;font-size:13px;"><span style="color:var(--green-600);font-weight:700;min-width:20px;">+45</span><span style="color:var(--text-secondary);">List 2 more waste materials</span></div>
+              <div style="display:flex;gap:10px;align-items:center;font-size:13px;"><span style="color:var(--green-600);font-weight:700;min-width:20px;">+40</span><span style="color:var(--text-secondary);">Complete 1 more exchange deal</span></div>
+            </div>
+            <button class="btn btn-primary btn-md" style="width:100%;margin-top:16px;" onclick="navigate('sell')">List Waste Now — Earn Points</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ─── LEADERBOARD PAGE ─── -->
+<div id="page-leaderboard" class="page">
+  <section class="section-sm" style="background:var(--green-50);border-bottom:1px solid var(--border);">
+    <div class="container">
+      <h1 style="font-family:var(--font-head);font-size:36px;font-weight:800;margin-bottom:8px;">Company Leaderboard</h1>
+      <p style="color:var(--text-muted);">Top green companies on EcoSphere — April 2026</p>
+    </div>
+  </section>
+  <section class="section-sm">
+    <div class="container">
+      <div class="grid-cols-3" style="gap:16px;margin-bottom:32px;">
+        <div class="metric-mini"><div class="metric-mini-label">Active Companies</div><div class="metric-mini-val">512</div></div>
+        <div class="metric-mini"><div class="metric-mini-label">Tonnes Exchanged</div><div class="metric-mini-val">10.4K</div></div>
+        <div class="metric-mini"><div class="metric-mini-label">CO₂ Saved (tonnes)</div><div class="metric-mini-val">2,840</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start;">
+        <div class="card">
+          <div id="leaderboard-list" style="padding:0 16px;"><!-- Rendered by JS --></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="card" style="background:linear-gradient(135deg,#fff8e0,#fff3c0);border-color:#f0d060;">
+            <div style="font-size:28px;text-align:center;margin-bottom:8px;">🏆</div>
+            <h4 style="font-family:var(--font-head);font-weight:800;text-align:center;color:#7a5000;margin-bottom:10px;">Gold Tier Benefits</h4>
+            <ul style="font-size:13px;color:#5a4000;line-height:2;list-style:none;">
+              <li>✅ Featured marketplace badge</li>
+              <li>✅ Carbon certificate issued</li>
+              <li>✅ Govt scheme eligibility</li>
+              <li>✅ Priority AI match ranking</li>
+              <li>✅ Dedicated account manager</li>
+              <li>✅ ESG report generation</li>
+            </ul>
+          </div>
+          <div class="card" style="background:var(--bg-secondary);">
+            <h4 style="font-family:var(--font-head);font-weight:700;margin-bottom:10px;">Your Progress</h4>
+            <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">TechPlast Industries</div>
+            <div style="font-size:22px;font-weight:800;font-family:var(--font-head);color:var(--green-700);margin-bottom:4px;">720 / 1000</div>
+            <div style="height:6px;background:var(--green-100);border-radius:3px;overflow:hidden;margin-bottom:8px;"><div id="score-pct-bar" style="width:72%;height:100%;background:linear-gradient(90deg,var(--green-400),var(--green-700));border-radius:3px;"></div></div>
+            <div style="font-size:12px;color:var(--text-muted);">280 points to Gold tier</div>
+            <button class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="navigate('greenscore')">View My Score</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ─── CONTACT PAGE ─── -->
+<div id="page-contact" class="page">
+  <section class="section-sm" style="background:var(--green-50);border-bottom:1px solid var(--border);">
+    <div class="container">
+      <h1 style="font-family:var(--font-head);font-size:36px;font-weight:800;margin-bottom:8px;">Contact Us</h1>
+      <p style="color:var(--text-muted);">Get in touch with the EcoSphere team for partnerships, support, or inquiries.</p>
+    </div>
+  </section>
+  <section class="section-sm">
+    <div class="container">
+      <div class="contact-grid">
+        <div>
+          <div class="contact-info-item">
+            <div class="contact-icon"><svg width="20" height="20" fill="none" viewBox="0 0 20 20"><path d="M2 5.5A2.5 2.5 0 014.5 3h11A2.5 2.5 0 0118 5.5v9A2.5 2.5 0 0115.5 17h-11A2.5 2.5 0 012 14.5v-9z" stroke="#1e7a3e" stroke-width="1.5"/><path d="M2 6l8 5 8-5" stroke="#1e7a3e" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <div><div style="font-weight:700;font-family:var(--font-head);margin-bottom:2px;">Email</div><div style="color:var(--text-muted);font-size:14px;">contact@ecosphere.in</div></div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-icon"><svg width="20" height="20" fill="none" viewBox="0 0 20 20"><path d="M3 5a2 2 0 012-2h1.5a1 1 0 01.95.68l.8 2.4a1 1 0 01-.23 1.02L6.8 8.3A11 11 0 0011.7 13.2l1.2-1.2a1 1 0 011.02-.23l2.4.8a1 1 0 01.68.95V15a2 2 0 01-2 2C8.27 17 3 11.73 3 5z" stroke="#1e7a3e" stroke-width="1.5"/></svg></div>
+            <div><div style="font-weight:700;font-family:var(--font-head);margin-bottom:2px;">Phone</div><div style="color:var(--text-muted);font-size:14px;">+91 98765 43210</div></div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-icon"><svg width="20" height="20" fill="none" viewBox="0 0 20 20"><path d="M10 2C7.24 2 5 4.24 5 7c0 4.25 5 11 5 11s5-6.75 5-11c0-2.76-2.24-5-5-5z" stroke="#1e7a3e" stroke-width="1.5"/><circle cx="10" cy="7" r="2" fill="#1e7a3e"/></svg></div>
+            <div><div style="font-weight:700;font-family:var(--font-head);margin-bottom:2px;">Office</div><div style="color:var(--text-muted);font-size:14px;">Bandra Kurla Complex, Mumbai 400051</div></div>
+          </div>
+          <div style="background:var(--green-50);border-radius:var(--radius-md);padding:20px;border:1px solid var(--green-100);margin-top:8px;">
+            <div style="font-family:var(--font-head);font-weight:700;margin-bottom:8px;color:var(--green-800);">🤖 AI Support Chat</div>
+            <p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;">Get instant answers powered by Gemini AI — waste classification, pricing guidance, compliance questions.</p>
+            <button class="btn btn-primary btn-md" onclick="navigate('matcher')">Open AI Matcher →</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:20px;">Send a Message</h3>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">First Name</label><input class="form-input" type="text" placeholder="Harsh" /></div>
+              <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" type="text" placeholder="Sharma" /></div>
+            </div>
+            <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="harsh@company.com" /></div>
+            <div class="form-group"><label class="form-label">Company</label><input class="form-input" type="text" placeholder="Your company name" /></div>
+            <div class="form-group">
+              <label class="form-label">Subject</label>
+              <select class="form-select">
+                <option>Partnership Inquiry</option>
+                <option>Technical Support</option>
+                <option>Waste Listing Help</option>
+                <option>Billing / Account</option>
+                <option>Media / Press</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Message</label><textarea class="form-textarea" placeholder="Tell us how we can help…" style="min-height:110px;"></textarea></div>
+            <button class="btn btn-primary btn-lg" style="width:100%;" onclick="showToast('Message sent! We\'ll respond within 24 hours.','success')">Send Message →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+</div><!-- END page-wrap -->
+
+<!-- ═══════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">
+          <div class="footer-logo-icon" style="width:32px; height:32px; overflow:hidden; border-radius:6px; margin-right:10px;">
+            <img src="static/assets/logo.jpeg" alt="EcoSphere Logo" style="height:100%; width:100%; object-fit:cover;">
+          </div>
+          EcoSphere
+        </div>
+        <p class="footer-desc">India's leading B2B platform for industrial waste exchange. Building a sustainable future through circular economy — powered by Gemini AI.</p>
+        <div class="newsletter-input" style="margin-top:16px;">
+          <input id="footer-email" type="email" placeholder="Your email" />
+          <button class="btn btn-primary btn-sm" onclick="subscribeNewsletter('footer-email')">Subscribe</button>
+        </div>
+      </div>
+      <div>
+        <div class="footer-heading">Platform</div>
+        <div class="footer-links">
+          <a href="#" onclick="navigate('marketplace')">Marketplace</a>
+          <a href="#" onclick="navigate('sell')">List Waste</a>
+          <a href="#" onclick="navigate('matcher')">AI Matcher</a>
+          <a href="#" onclick="navigate('greenscore')">Green Score</a>
+          <a href="#" onclick="navigate('leaderboard')">Leaderboard</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-heading">Company</div>
+        <div class="footer-links">
+          <a href="#">About Us</a>
+          <a href="#">How It Works</a>
+          <a href="#">For Manufacturers</a>
+          <a href="#">For Recyclers</a>
+          <a href="#" onclick="navigate('contact')">Contact</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-heading">Contact</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--dark-400);">
+          <span>contact@ecosphere.in</span>
+          <span>+91 98765 43210</span>
+          <span>Bandra Kurla Complex<br>Mumbai 400051</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-divider">
+      <span class="footer-bottom-text">© 2026 EcoSphere by IA (Innovators Arena). All rights reserved.</span>
+      <div style="display:flex;gap:16px;">
+        <a href="#" style="font-size:13px;color:var(--dark-600);" onmouseover="this.style.color='var(--green-400)'" onmouseout="this.style.color='var(--dark-600)'">Privacy Policy</a>
+        <a href="#" style="font-size:13px;color:var(--dark-600);" onmouseover="this.style.color='var(--green-400)'" onmouseout="this.style.color='var(--dark-600)'">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+</footer>
+<!-- ═══════════════════════════════════════
+     AUTH MODAL (Login / Register)
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal" style="max-width:400px;">
+    <div style="display:flex;margin-bottom:24px;border-bottom:1px solid var(--dark-100);">
+      <button id="auth-tab-login" class="btn btn-ghost active" style="flex:1;border-radius:0;padding-bottom:12px;" onclick="switchAuthTab('login')">Log In</button>
+      <button id="auth-tab-register" class="btn btn-ghost" style="flex:1;border-radius:0;padding-bottom:12px;" onclick="switchAuthTab('register')">Register</button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="auth-login-form">
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label">Email Address</label>
+        <input id="login-email" class="form-input" type="email" placeholder="name@company.com" />
+      </div>
+      <div class="form-group" style="margin-bottom:24px;">
+        <label class="form-label">Password</label>
+        <input id="login-password" class="form-input" type="password" placeholder="••••••••" />
+      </div>
+      <button id="login-btn" class="btn btn-primary btn-lg" style="width:100%;" onclick="doLogin()">Log In</button>
+      <p style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:16px;">
+        Demo account: <code>techplast@ecoloop.in</code> / <code>ecoloop123</code>
+      </p>
+    </div>
+
+    <!-- Register Form -->
+    <div id="auth-register-form" style="display:none;">
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label">Company Name</label>
+        <input id="reg-company" class="form-input" type="text" placeholder="TechPlast Industries" />
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label">Email Address</label>
+        <input id="reg-email" class="form-input" type="email" placeholder="name@company.com" />
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label">Location (City, State)</label>
+        <input id="reg-location" class="form-input" type="text" placeholder="Mumbai, Maharashtra" />
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label class="form-label">Password</label>
+        <input id="reg-password" class="form-input" type="password" placeholder="Min. 6 characters" />
+      </div>
+      <button id="register-btn" class="btn btn-primary btn-lg" style="width:100%;" onclick="doRegister()">Create Account</button>
+    </div>
+
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:12px;color:var(--text-muted);" onclick="closeAuthModal()">Cancel</button>
+  </div>
+</div>
+<!-- ═══════════════════════════════════════
+     TOAST CONTAINER
+═══════════════════════════════════════ -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════ -->
+<script src="static/js/app.js"></script>
+<script src="static/js/api.js"></script>
+
+</body>
+</html>
