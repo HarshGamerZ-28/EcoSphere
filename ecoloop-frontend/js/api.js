@@ -74,7 +74,20 @@ const AuthAPI = {
     try { return JSON.parse(localStorage.getItem('ecosphere_user')); }
     catch { return null; }
   },
-  isLoggedIn() { return !!getToken(); }
+  isLoggedIn() { return !!getToken(); },
+  async restoreSession() {
+    if (this.isLoggedIn()) {
+      try {
+        const user = await this.me();
+        localStorage.setItem('ecosphere_user', JSON.stringify(user));
+        return user;
+      } catch (e) {
+        clearToken();
+        return null;
+      }
+    }
+    return null;
+  }
 };
 
 // ── Listings API ──────────────────────────────────
@@ -163,6 +176,38 @@ const AIAPI = {
       body: JSON.stringify({ waste_name: wasteName, category })
     });
   },
+};
+
+// ── Chat API ───────────────────────────────────────
+const ChatAPI = {
+  async send(quoteId, receiverId, message) {
+    return await apiFetch('/chat/send', {
+      method: 'POST',
+      body: JSON.stringify({ quote_id: quoteId, receiver_id: receiverId, message })
+    });
+  },
+  async getConversation(quoteId) {
+    return await apiFetch(`/chat/conversation/${quoteId}`);
+  },
+  async getUnreadCount() {
+    return await apiFetch('/chat/unread-count');
+  }
+};
+
+// ── Quotes Management API ──────────────────────────
+const QuoteManagementAPI = {
+  async getMyQuotes() {
+    return await apiFetch('/quotes/my-quotes');
+  },
+  async getDetail(quoteId) {
+    return await apiFetch(`/quotes/${quoteId}`);
+  },
+  async updateStatus(quoteId, status) {
+    return await apiFetch(`/quotes/${quoteId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    });
+  }
 };
 
 // ─── Marketplace Quote Logic ──────────────────────

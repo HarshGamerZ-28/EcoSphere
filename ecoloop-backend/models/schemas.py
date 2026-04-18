@@ -173,6 +173,27 @@ class PlatformStats(BaseModel):
     co2_saved_tonnes: float
     value_generated_cr: float
 
+# ── Chat ────────────────────────────────────────────
+class ChatMessageCreate(BaseModel):
+    quote_id: int
+    receiver_id: int
+    message: str
+
+class ChatMessageOut(BaseModel):
+    id: int
+    quote_id: int
+    sender_id: int
+    receiver_id: int
+    message: str
+    is_read: bool
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+# ── Quote Status ────────────────────────────────────
+class QuoteUpdate(BaseModel):
+    status: str  # 'accepted', 'rejected', 'completed'
+
 # ── Payments ───────────────────────────────────────
 class PaymentCreate(BaseModel):
     quote_id: int

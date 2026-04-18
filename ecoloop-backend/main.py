@@ -44,15 +44,17 @@ app.add_middleware(
 
 
 # ── Routers ────────────────────────────────────────
-from routers import auth, listings, quotes, greenscore, ai as ai_router, payments, admin
+from routers import auth, listings, quotes, greenscore, ai as ai_router, payments, admin, chat, quotes_new
 
 app.include_router(auth.router,        prefix="/api")
 app.include_router(listings.router,    prefix="/api")
 app.include_router(quotes.router,      prefix="/api")
+app.include_router(quotes_new.router,  prefix="/api")
 app.include_router(greenscore.router,  prefix="/api")
 app.include_router(ai_router.router,   prefix="/api")
 app.include_router(payments.router,    prefix="/api")
 app.include_router(admin.router,       prefix="/api")
+app.include_router(chat.router,        prefix="/api")
 
 
 # ── Static Files (Frontend) ───────────────────────

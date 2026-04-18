@@ -399,7 +399,20 @@ async function handleRejectListing(id) {
 }
 
 // ─── Init ─────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Restore session if user was previously logged in
+  if (AuthAPI.isLoggedIn()) {
+    try {
+      const user = await AuthAPI.restoreSession();
+      if (user) {
+        console.log('✅ Session restored for:', user.company_name);
+        updateNavAuth();
+      }
+    } catch (e) {
+      console.warn('Session restore failed:', e.message);
+    }
+  }
+
   navigate('home');
   renderMarketplace();
   initEconomyAnimation();

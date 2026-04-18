@@ -180,3 +180,18 @@ class Payment(Base):
 
     user                = relationship("User", back_populates="payments")
     quote               = relationship("QuoteRequest", back_populates="payment")
+
+class ChatMessage(Base):
+    """Messages between companies after accepting quotes"""
+    __tablename__ = "chat_messages"
+    id              = Column(Integer, primary_key=True, index=True)
+    quote_id        = Column(Integer, ForeignKey("quote_requests.id"), nullable=False)
+    sender_id       = Column(Integer, ForeignKey("users.id"), nullable=False)
+    receiver_id     = Column(Integer, ForeignKey("users.id"), nullable=False)
+    message         = Column(Text, nullable=False)
+    is_read         = Column(Boolean, default=False)
+    created_at      = Column(DateTime, default=datetime.utcnow)
+
+    quote           = relationship("QuoteRequest")
+    sender          = relationship("User", foreign_keys=[sender_id])
+    receiver        = relationship("User", foreign_keys=[receiver_id])
