@@ -52,6 +52,8 @@ Return exactly 3 buyer matches as JSON array:
 Rules: scores 65–98, first match highest. Use realistic Indian company names and locations."""
 
     raw = await call_gemini(prompt, api_key, temperature=0.8)
+    if not raw:
+        raise ValueError("Gemini API returned empty response")
     cleaned = raw.replace("```json", "").replace("```", "").strip()
     return json.loads(cleaned)
 
@@ -62,7 +64,10 @@ Waste: {waste_name}
 Category: {category}
 Include: material properties, typical industrial use cases, quality notes.
 Max 60 words. Plain text only. No bullet points."""
-    return (await call_gemini(prompt, api_key, temperature=0.6) or "").strip()
+    result = await call_gemini(prompt, api_key, temperature=0.6)
+    if not result:
+        raise ValueError("Gemini API returned empty response for description")
+    return result.strip()
 
 async def ai_waste_insights(waste_name: str, category: str, api_key: Optional[str] = None) -> str:
     """Get market insights for a waste material."""
@@ -72,7 +77,10 @@ Give 3 key insights about "{waste_name}" ({category}) waste:
 2. Current market price range (in ₹/kg, India-specific)
 3. Environmental benefit if diverted from landfill (quantified)
 Format as 3 short bullet points. Max 80 words total. Be specific and data-driven."""
-    return (await call_gemini(prompt, api_key, temperature=0.5) or "").strip()
+    result = await call_gemini(prompt, api_key, temperature=0.5)
+    if not result:
+        raise ValueError("Gemini API returned empty response for insights")
+    return result.strip()
 
 # ── Fallback (no API key) ──────────────────────────
 FALLBACK_MATCHES = {
