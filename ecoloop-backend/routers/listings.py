@@ -57,6 +57,8 @@ def create_listing(
         **payload.model_dump(),
         owner_id=current_user.id,
         green_pts_value=green_pts,
+        is_active=True,
+        is_verified=True,
     )
     db.add(listing)
     db.commit()
