@@ -6,7 +6,7 @@
 // ─── State ───────────────────────────────────────
 const APP = {
   currentPage: 'home',
-  listings: JSON.parse(localStorage.getItem('ecosphere_listings') || 'null') || getDefaultListings(),
+  listings: [], // Always load from backend
   greenScores: JSON.parse(localStorage.getItem('ecosphere_scores') || 'null') || getDefaultScores(),
   userCompany: localStorage.getItem('ecosphere_company') || 'TechPlast Industries',
 };
@@ -70,7 +70,13 @@ function navigate(page) {
   const navEl = document.querySelector(`[data-page="${page}"]`);
   if (navEl) navEl.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  if (page === 'marketplace') renderMarketplace();
+  if (page === 'marketplace') {
+    if (typeof loadMarketplaceFromBackend === 'function') {
+      loadMarketplaceFromBackend();
+    } else {
+      renderMarketplace();
+    }
+  }
   if (page === 'greenscore') renderGreenScore();
   if (page === 'leaderboard') renderLeaderboard();
   if (page === 'admin') renderAdmin();
