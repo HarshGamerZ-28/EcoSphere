@@ -527,6 +527,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const sellBtn = document.querySelector('button[onclick="submitListing()"]');
   if (sellBtn) sellBtn.onclick = submitListingToBackend;
 
+  // Expose backend functions globally to override HTML fallbacks
+  window.runAIMatcher = runAIMatcherBackend;
+
   // marketplace items are rendered dynamically, so we handle quote requests via delegation or updating render
 });
 
@@ -555,4 +558,7 @@ window.handleRejectListing = async (id) => {
     } catch (e) { showToast(e.message, 'error'); }
   }
 };
+
+// Export backend functions globally to override HTML fallbacks
+window.runAIMatcher = runAIMatcherBackend;
 

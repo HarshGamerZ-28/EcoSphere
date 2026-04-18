@@ -13,7 +13,13 @@ from core.auth import hash_password
 from core.green_score import get_or_create_score
 
 # ── Create tables ──────────────────────────────────
-Base.metadata.create_all(bind=engine)
+# Try to create tables, but don't fail if database is unreachable
+try:
+    Base.metadata.create_all(bind=engine)
+    print("✅ Database tables initialized")
+except Exception as e:
+    print(f"⚠️  Could not initialize database tables at startup: {e}")
+    print("   Will retry on first request...")
 
 app = FastAPI(
     title="EcoSphere API",
