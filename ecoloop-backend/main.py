@@ -1,7 +1,13 @@
 
 import os
 from dotenv import load_dotenv
-load_dotenv()
+
+# Load from root .env first (production), then venv/.env (local)
+env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    load_dotenv()  # fallback: look in current directory
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

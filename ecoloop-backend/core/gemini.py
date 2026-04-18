@@ -4,7 +4,13 @@ import os
 from typing import Optional
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load from root .env first (production), then fallback
+env_path = os.path.join(os.path.dirname(__file__), '..', '..', '.env')
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    load_dotenv()
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
