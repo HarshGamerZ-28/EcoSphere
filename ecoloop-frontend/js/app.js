@@ -140,7 +140,7 @@ function renderMarketplace(filter) {
           <div><div class="listing-price">₹${l.price}/${l.unit}</div><div class="listing-price-sub">${l.company}</div></div>
           <div class="green-pts-badge">🌿 +${l.greenPts} pts</div>
         </div>
-        <button class="btn btn-primary btn-md" style="width:100%;margin-top:12px;" onclick="event.stopPropagation();requestQuote('${l.title}','${l.company}')">Request Quote</button>
+        <button class="btn btn-primary btn-md" style="width:100%;margin-top:12px;" onclick="event.stopPropagation();requestQuote(${l.id}, '${l.title}','${l.company}')">Request Quote</button>
       </div>
     </div>
   `).join('');
@@ -162,10 +162,14 @@ function filterMarketplace(btn, filter) {
   }
 }
 
-function requestQuote(title, company) {
+function requestQuote(listingId, title, company) {
   // Try backend version first (will check if logged in)
   if (typeof requestQuoteBackend === 'function') {
-    requestQuoteBackend(null, title, company);
+    if (!listingId) {
+      showToast('Unable to send quote: missing listing ID', 'error');
+      return;
+    }
+    requestQuoteBackend(listingId, title, company);
   } else {
     showToast(`Quote request for "${title}" sent to ${company}! They'll respond within 24 hours.`, 'success');
     awardGreenPoints(5, 'Sent quote request for ' + title);

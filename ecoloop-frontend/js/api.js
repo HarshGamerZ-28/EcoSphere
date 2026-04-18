@@ -3,9 +3,9 @@
    Connects frontend to FastAPI backend
    ============================================= */
 
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:8000/api'
-  : '/api';   // same-origin in production
+  : 'https://ecosphere-fec3.onrender.com/api';
 
 // ── Auth token ────────────────────────────────────
 function getToken() { return localStorage.getItem('ecosphere_token'); }
@@ -26,13 +26,21 @@ async function apiFetch(path, options = {}) {
       ...options,
     });
     if (res.status === 204) return null;
-    
+
     if (res.status === 401) {
       AuthAPI.logout();
       throw new Error('Session expired. Please log in again.');
     }
 
-    const data = await res.json();
+    let data;
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      data = await res.json();
+    } else {
+      // Not JSON (likely HTML error page)
+      const text = await res.text();
+      throw new Error('Unexpected response from server. Please check backend logs.\n' + text.substring(0, 200));
+    }
     if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
     return data;
   } catch (e) {
@@ -168,7 +176,18 @@ async function requestQuoteBackend(listingId, title, company) {
     const res = await QuotesAPI.send(listingId, `Interested in ${title}`, "1");
     showToast(`Quote request for "${title}" sent to ${company}!`, 'success');
   } catch (e) {
-    showToast(`Failed to send quote: ${e.message}`, 'error');
+    let errorMsg = '';
+    if (e && typeof e === 'object' && e.message) {
+      errorMsg = e.message;
+    } else {
+      try {
+        errorMsg = JSON.stringify(e);
+      } catch {
+        errorMsg = String(e);
+      }
+    }
+    console.error('Quote request error:', e);
+    showToast(`Failed to send quote: ${errorMsg}`, 'error');
   }
 }
 
