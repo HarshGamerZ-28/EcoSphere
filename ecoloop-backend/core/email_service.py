@@ -19,6 +19,9 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 SMTP_FROM     = os.getenv("SMTP_FROM", "EcoSphere <noreply@ecosphere.in>")
 SENDGRID_KEY  = os.getenv("SENDGRID_API_KEY", "")
 
+# Production URL of the deployed frontend
+APP_URL = os.getenv("APP_URL", "https://eco-sphere-rho-eosin.vercel.app")
+
 # ── Base HTML Template ──────────────────────────────
 def _html_wrapper(body: str) -> str:
     return f"""<!DOCTYPE html>
@@ -36,9 +39,19 @@ def _html_wrapper(body: str) -> str:
   .body p {{ color:#3a4a3d; font-size:15px; line-height:1.65; margin:0 0 16px; }}
   .cta   {{ display:inline-block; background:#1e7a3e; color:#fff; padding:12px 28px;
              border-radius:8px; font-weight:700; font-size:14px; text-decoration:none; margin:8px 0 20px; }}
+  .cta-outline {{ display:inline-block; background:#fff; color:#1e7a3e; padding:10px 22px;
+                  border-radius:8px; font-weight:700; font-size:14px; text-decoration:none;
+                  margin:6px 6px 6px 0; border:2px solid #1e7a3e; }}
+  .cta-danger {{ display:inline-block; background:#fff; color:#dc2626; padding:10px 22px;
+                 border-radius:8px; font-weight:700; font-size:14px; text-decoration:none;
+                 margin:6px 6px 6px 0; border:2px solid #dc2626; }}
+  .cta-chat {{ display:inline-block; background:#fff; color:#0369a1; padding:10px 22px;
+               border-radius:8px; font-weight:700; font-size:14px; text-decoration:none;
+               margin:6px 6px 6px 0; border:2px solid #0369a1; }}
   .info-box {{ background:#f0faf2; border:1px solid #b8e8c5; border-radius:10px;
                 padding:16px 20px; margin:16px 0; }}
   .info-box p {{ margin:4px 0; font-size:14px; color:#185f31; }}
+  .action-row {{ display:flex; flex-wrap:wrap; gap:8px; margin:20px 0; }}
   .footer {{ background:#f0f5f1; padding:16px 32px; text-align:center;
               font-size:12px; color:#6b7a6e; border-top:1px solid #e0e8e2; }}
 </style>
@@ -52,7 +65,7 @@ def _html_wrapper(body: str) -> str:
   <div class="body">{body}</div>
   <div class="footer">
     &copy; 2026 EcoSphere by IA (Innovators Arena) &nbsp;|&nbsp;
-    <a href="http://localhost:8000" style="color:#4caf71;">Visit Platform</a>
+    <a href="{APP_URL}" style="color:#4caf71;">Visit Platform</a>
   </div>
 </div>
 </body></html>"""
@@ -95,20 +108,30 @@ def send_quote_received(
     quote_id: int,
 ):
     subject = f"🌿 New Quote Request for \"{listing_title}\" — EcoSphere"
+    # Accept / Reject links go back to the platform where the seller manages quotes
+    platform_link = f"{APP_URL}/#chat"
     body = f"""
 <p>Hi <strong>{seller_company}</strong>,</p>
 <p>Great news! You've received a new quote request on EcoSphere.</p>
 <div class="info-box">
   <p>📦 <strong>Listing:</strong> {listing_title}</p>
-  <p>🏭 <strong>Buyer:</strong> {buyer_company}</p>
+  <p>🏭 <strong>From:</strong> {buyer_company}</p>
   <p>📊 <strong>Quantity Needed:</strong> {quantity or 'Not specified'}</p>
   <p>💬 <strong>Message:</strong> {message or 'No message provided'}</p>
+  <p>🔖 <strong>Quote ID:</strong> #{quote_id}</p>
 </div>
-<p>Log in to your EcoSphere dashboard to review and respond to this quote request.</p>
-<a href="http://localhost:8000" class="cta">View Quote Request →</a>
-<p style="font-size:13px;color:#6b7a6e;">Quote ID: #{quote_id}</p>
+<p>Log in to EcoSphere and respond to this quote request:</p>
+<div class="action-row">
+  <a href="{APP_URL}" class="cta">✅ Accept Quote</a>
+  <a href="{APP_URL}" class="cta-danger">❌ Reject Quote</a>
+  <a href="{platform_link}" class="cta-chat">💬 Chat with Buyer</a>
+</div>
+<p style="font-size:13px;color:#6b7a6e;">
+  ℹ️ Click any button above to open the EcoSphere platform and manage this quote from your dashboard.
+  Accepting will notify the buyer and open a chat channel.
+</p>
 """
-    plain = f"New quote request received from {buyer_company} for {listing_title}. Quote ID: {quote_id}"
+    plain = f"New quote request from {buyer_company} for {listing_title}. Quote #{quote_id}. Login to {APP_URL} to accept/reject."
     send_email(seller_email, subject, body, plain)
 
 
@@ -128,12 +151,15 @@ def send_quote_confirmation(
   <p>📦 <strong>Listing:</strong> {listing_title}</p>
   <p>🏭 <strong>Seller:</strong> {seller_company}</p>
   <p>⏱️ <strong>Expected Response:</strong> Within 24–48 hours</p>
+  <p>🔖 <strong>Quote ID:</strong> #{quote_id}</p>
 </div>
 <p>You'll receive an email notification once the seller responds to your request.</p>
-<a href="http://localhost:8000" class="cta">Track Your Requests →</a>
-<p style="font-size:13px;color:#6b7a6e;">Quote ID: #{quote_id}</p>
+<a href="{APP_URL}" class="cta">Track Your Requests →</a>
+<p style="font-size:13px;color:#6b7a6e;">
+  Once the seller accepts your quote, a chat channel will open between you and {seller_company}.
+</p>
 """
-    plain = f"Your quote request for {listing_title} has been sent to {seller_company}. Quote ID: {quote_id}"
+    plain = f"Your quote for {listing_title} was sent to {seller_company}. Track at {APP_URL}"
     send_email(buyer_email, subject, body, plain)
 
 
@@ -146,23 +172,32 @@ def send_quote_status_update(
     quote_id: int,
 ):
     status_map = {
-        "accepted":  ("🎉 Quote Accepted", "#1e7a3e", "Your quote request has been ACCEPTED!"),
-        "rejected":  ("❌ Quote Declined", "#dc2626", "Unfortunately, your quote was declined."),
-        "completed": ("✅ Exchange Completed", "#185f31", "Your waste exchange has been marked as COMPLETED!"),
+        "accepted":  ("🎉 Quote Accepted", "#1e7a3e", "Your quote request has been ACCEPTED!",
+                      f"You can now chat with the seller. Head to the Chat section on EcoSphere."),
+        "rejected":  ("❌ Quote Declined", "#dc2626", "Unfortunately, your quote was declined.",
+                      f"You can browse other listings and send new quote requests."),
+        "completed": ("✅ Exchange Completed", "#185f31", "Your waste exchange has been marked as COMPLETED!",
+                      f"Green Points have been awarded for this exchange. Check your Green Score dashboard."),
     }
-    emoji, color, headline = status_map.get(new_status, ("📋 Quote Updated", "#3a4a3d", "Your quote status has been updated."))
+    emoji, color, headline, detail = status_map.get(
+        new_status,
+        ("📋 Quote Updated", "#3a4a3d", "Your quote status has been updated.", "")
+    )
     subject = f"{emoji} — {listing_title} | EcoSphere"
+    chat_btn = f'<a href="{APP_URL}/#chat" class="cta-chat" style="margin-top:12px;">💬 Open Chat →</a>' if new_status == "accepted" else ""
     body = f"""
 <p>Hi <strong>{recipient_company}</strong>,</p>
 <p style="color:{color};font-weight:700;font-size:16px;">{headline}</p>
 <div class="info-box">
   <p>📦 <strong>Listing:</strong> {listing_title}</p>
   <p>📋 <strong>Status:</strong> <span style="text-transform:capitalize;font-weight:700;">{new_status}</span></p>
+  <p>🔖 <strong>Quote ID:</strong> #{quote_id}</p>
 </div>
-<a href="http://localhost:8000" class="cta">Open EcoSphere →</a>
-<p style="font-size:13px;color:#6b7a6e;">Quote ID: #{quote_id}</p>
+<p>{detail}</p>
+<a href="{APP_URL}" class="cta">Open EcoSphere →</a>
+{chat_btn}
 """
-    plain = f"Quote #{quote_id} for {listing_title} is now {new_status}."
+    plain = f"Quote #{quote_id} for {listing_title} is now {new_status}. Visit {APP_URL}"
     send_email(recipient_email, subject, body, plain)
 
 
@@ -183,9 +218,9 @@ def send_listing_verified(
   {f'<p>📝 <strong>Admin Note:</strong> {admin_note}</p>' if admin_note else ''}
 </div>
 <p>Verified listings receive priority placement and the Verified badge, leading to more buyer inquiries.</p>
-<a href="http://localhost:8000" class="cta">View Your Listing →</a>
+<a href="{APP_URL}" class="cta">View Your Listing →</a>
 """
-    plain = f"Your listing {listing_title} has been verified and is now live on EcoSphere!"
+    plain = f"Your listing {listing_title} has been verified and is now live on EcoSphere! Visit {APP_URL}"
     send_email(seller_email, subject, body, plain)
 
 
@@ -207,7 +242,7 @@ def send_payment_confirmation(
   <p>🔖 <strong>Payment ID:</strong> {razorpay_payment_id}</p>
 </div>
 <p>Keep this email as your receipt. The seller will be notified and will arrange the material transfer.</p>
-<a href="http://localhost:8000" class="cta">View Transaction →</a>
+<a href="{APP_URL}" class="cta">View Transaction →</a>
 """
-    plain = f"Payment of ₹{amount_inr:,.2f} confirmed for {listing_title}. Payment ID: {razorpay_payment_id}"
+    plain = f"Payment of ₹{amount_inr:,.2f} confirmed for {listing_title}. Payment ID: {razorpay_payment_id}. Visit {APP_URL}"
     send_email(buyer_email, subject, body, plain)

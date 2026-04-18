@@ -438,18 +438,27 @@ async function getWasteInsightBackend() {
   btn.disabled = false; btn.textContent = '🔍 Get AI Insights';
 }
 
+// ── Tier helpers ────────────────────────────────────
+function getTierEmoji(tier) {
+  if (tier === 'Gold')   return '🏆';
+  if (tier === 'Silver') return '⚡';
+  return '🌱';
+}
+
 async function loadGreenScoreFromBackend() {
   if (!AuthAPI.isLoggedIn()) return;
   try {
     const data = await GreenScoreAPI.me();
     if (!data) return;
-    // Update scoreData with real server values
-    scoreData.criteria[0].pts = data.score.waste_listed_pts;
-    scoreData.criteria[1].pts = data.score.exchange_pts;
-    scoreData.criteria[2].pts = data.score.co2_pts;
-    scoreData.criteria[3].pts = data.score.compliance_pts;
-    scoreData.criteria[4].pts = data.score.rating_pts;
-    scoreData.criteria[5].pts = data.score.zero_waste_pts;
+    const s = data.score;
+
+    // ── Score criteria breakdown ─────────────────────
+    scoreData.criteria[0].pts = s.waste_listed_pts;
+    scoreData.criteria[1].pts = s.exchange_pts;
+    scoreData.criteria[2].pts = s.co2_pts;
+    scoreData.criteria[3].pts = s.compliance_pts;
+    scoreData.criteria[4].pts = s.rating_pts;
+    scoreData.criteria[5].pts = s.zero_waste_pts;
     if (data.recent_events?.length) {
       scoreData.activity = data.recent_events.map(e => ({
         text: e.reason, pts: `+${e.pts}`,
@@ -457,9 +466,50 @@ async function loadGreenScoreFromBackend() {
       }));
     }
     renderGreenScore();
-    // score-num is already updated by renderGreenScore via scoreData, but backend total overrides local calc
+
+    // ── Total score number ───────────────────────────
     const numEl = document.getElementById('score-num');
-    if (numEl) numEl.textContent = data.score.total;
+    if (numEl) numEl.textContent = s.total;
+
+    // ── Tier badge ───────────────────────────────────
+    const tierBadge = document.getElementById('score-tier-badge');
+    if (tierBadge) tierBadge.textContent = `${getTierEmoji(s.tier)} ${s.tier} Tier`;
+
+    // ── Points to next tier ──────────────────────────
+    const ptsNext = document.getElementById('score-pts-to-next');
+    if (ptsNext) {
+      if (data.pts_to_next_tier > 0)
+        ptsNext.textContent = `${data.pts_to_next_tier} pts to ${data.next_tier}`;
+      else
+        ptsNext.textContent = '🥇 Max Tier Reached!';
+    }
+
+    // ── Company info ─────────────────────────────────
+    const user = AuthAPI.getUser();
+    const nameEl = document.getElementById('score-company-name');
+    const locEl  = document.getElementById('score-company-location');
+    if (nameEl && user) nameEl.textContent = user.company_name || 'Your Company';
+    if (locEl  && user) locEl.textContent  = user.location || '';
+
+    // ── Monthly progress ─────────────────────────────
+    const monthlyPts = data.monthly_pts || 0;
+    const monthlyEl = document.getElementById('score-monthly-pts');
+    if (monthlyEl) monthlyEl.textContent = `+${monthlyPts} pts`;
+
+    // ── Monthly breakdown mini cards ─────────────────
+    const mb = data.monthly_breakdown || {};
+    const setCard = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = `+${val || 0}`;
+    };
+    setCard('monthly-waste',      mb.waste_listed);
+    setCard('monthly-deals',      mb.deals_closed);
+    setCard('monthly-co2',        mb.co2);
+    setCard('monthly-compliance', mb.compliance);
+
+    // ── Leaderboard sidebar progress bar ─────────────
+    const barEl = document.getElementById('score-pct-bar');
+    if (barEl) barEl.style.width = `${Math.min(100, (s.total / 1000) * 100)}%`;
   } catch { /* use local fallback */ }
 }
 
@@ -481,12 +531,99 @@ async function loadLeaderboardFromBackend() {
             <div style="font-family:var(--font-head);font-size:14px;font-weight:700;">${s.company_name}${s.is_you?' <span style="color:var(--green-600);font-size:12px;">(You)</span>':''}</div>
             <div style="font-size:12px;color:var(--text-muted);">${s.location||''} · ${s.industry||''}</div>
           </div>
-          <span class="tier-pill ${tierClass}">${s.tier}</span>
+          <span class="tier-pill ${tierClass}">${getTierEmoji(s.tier)} ${s.tier}</span>
           <div style="font-family:var(--font-head);font-size:15px;font-weight:800;color:var(--green-700);min-width:60px;text-align:right;">${s.score}</div>
         </div>`;
     }).join('');
   } catch { renderLeaderboard(); }
 }
+
+// ── Chat conversations loader ──────────────────────
+async function loadChatConversations() {
+  if (!AuthAPI.isLoggedIn()) return;
+  try {
+    // Fetch accepted quotes for the current user (both sent and received)
+    const [sent, received] = await Promise.all([
+      QuotesAPI.mySent(),
+      QuotesAPI.myReceived()
+    ]);
+    const accepted = [...(sent || []), ...(received || [])].filter(q => q.status === 'accepted');
+
+    const convEl = document.getElementById('chat-conversations');
+    if (!convEl) return;
+    if (!accepted.length) {
+      convEl.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);">
+        <p>📭 No active conversations</p>
+        <p style="font-size:12px;margin-top:8px;">Start by requesting a quote on the Marketplace!</p>
+      </div>`;
+      return;
+    }
+
+    const user = AuthAPI.getUser();
+    convEl.innerHTML = accepted.map(q => {
+      const isbuyer = q.buyer_company !== (user?.company_name);
+      const partner = q.buyer_company || q.seller_company || 'Unknown';
+      const initials = partner.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+      return `
+        <div onclick="openChatConversation(${q.id}, '${partner.replace(/'/g,"\\'")}')"
+             style="padding:12px;border-radius:var(--radius-md);cursor:pointer;display:flex;gap:12px;align-items:center;
+                    border-bottom:1px solid var(--border);hover:background:var(--green-50);">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--green-100);display:flex;
+                      align-items:center;justify-content:center;font-weight:700;color:var(--green-700);flex-shrink:0;">
+            ${initials}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:14px;">${partner}</div>
+            <div style="font-size:12px;color:var(--text-muted);">${q.listing_title || 'Waste Exchange'}</div>
+          </div>
+          <span style="font-size:11px;color:var(--green-600);font-weight:600;">Active</span>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    console.warn('loadChatConversations error:', e.message);
+  }
+}
+
+// ── Open a specific chat conversation ─────────────
+window.openChatConversation = async function(quoteId, partnerName) {
+  document.getElementById('chat-header').style.display = 'block';
+  document.getElementById('chat-messages').style.display = 'block';
+  document.getElementById('chat-empty').style.display = 'none';
+  document.getElementById('chat-input-area').style.display = 'block';
+  document.getElementById('chat-partner-name').textContent = partnerName;
+  document.getElementById('chat-partner-status').textContent = 'Active conversation';
+
+  // Store current quote context
+  window._activeChatQuoteId = quoteId;
+
+  // Load messages
+  try {
+    const messages = await ChatAPI.getConversation(quoteId);
+    const user = AuthAPI.getUser();
+    const msgEl = document.getElementById('chat-messages');
+    if (!messages || !messages.length) {
+      msgEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">No messages yet. Say hello! 👋</div>';
+      return;
+    }
+    msgEl.innerHTML = messages.map(m => {
+      const isMine = m.sender_id === user?.id;
+      return `
+        <div style="display:flex;justify-content:${isMine?'flex-end':'flex-start'};margin-bottom:12px;">
+          <div style="max-width:70%;padding:10px 14px;border-radius:${isMine?'12px 12px 2px 12px':'12px 12px 12px 2px'};
+                      background:${isMine?'var(--green-600)':'var(--bg-secondary)'};color:${isMine?'white':'var(--text-primary)'};
+                      font-size:14px;line-height:1.5;">
+            ${m.message}
+            <div style="font-size:10px;opacity:0.65;margin-top:4px;text-align:right;">
+              ${new Date(m.created_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+    msgEl.scrollTop = msgEl.scrollHeight;
+  } catch(e) {
+    console.warn('Load messages error:', e.message);
+  }
+};
 
 // ── Auth modal helpers ─────────────────────────────
 function openAuthModal(mode = 'login') {
@@ -619,4 +756,73 @@ window.handleRejectListing = async (id) => {
 
 // Export backend functions globally to override HTML fallbacks
 window.runAIMatcher = runAIMatcherBackend;
+
+// ── Chat Message Sending ──────────────────────────
+window.sendChatMessage = async function() {
+  const input = document.getElementById('chat-message-input');
+  const message = input.value.trim();
+  if (!message) return;
+  if (!window._activeChatQuoteId) {
+    showToast('No active conversation', 'error');
+    return;
+  }
+  const btn = event.target;
+  btn.disabled = true;
+  try {
+    const user = AuthAPI.getUser();
+    const quote = await QuotesAPI.mySent().then(q => q.find(x => x.id === window._activeChatQuoteId))
+      || await QuotesAPI.myReceived().then(q => q.find(x => x.id === window._activeChatQuoteId));
+    
+    const receiverId = quote.buyer_id === user.id ? quote.seller_id : quote.buyer_id;
+    await ChatAPI.send(window._activeChatQuoteId, receiverId, message);
+    input.value = '';
+    // Reload messages
+    const msgEl = document.getElementById('chat-messages');
+    const messages = await ChatAPI.getConversation(window._activeChatQuoteId);
+    if (messages && messages.length > 0) {
+      msgEl.innerHTML = messages.map(m => {
+        const isMine = m.sender_id === user?.id;
+        return `
+          <div style="display:flex;justify-content:${isMine?'flex-end':'flex-start'};margin-bottom:12px;">
+            <div style="max-width:70%;padding:10px 14px;border-radius:${isMine?'12px 12px 2px 12px':'12px 12px 12px 2px'};
+                        background:${isMine?'var(--green-600)':'var(--bg-secondary)'};color:${isMine?'white':'var(--text-primary)'};
+                        font-size:14px;line-height:1.5;">
+              ${m.message}
+              <div style="font-size:10px;opacity:0.65;margin-top:4px;text-align:right;">
+                ${new Date(m.created_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+      msgEl.scrollTop = msgEl.scrollHeight;
+    }
+  } catch (e) {
+    showToast(`Failed to send message: ${e.message}`, 'error');
+  }
+  btn.disabled = false;
+};
+
+// ── Accept/Reject Quote with Chat Link ────────────
+window.acceptQuote = async function(quoteId) {
+  if (!confirm('Accept this quote?')) return;
+  try {
+    await QuotesAPI.updateStatus(quoteId, 'accepted');
+    showToast('✅ Quote accepted! Opening chat...', 'success');
+    setTimeout(() => {
+      navigate('chat');
+      const convs = document.getElementById('chat-conversations');
+      if (convs && convs.querySelector(`div[onclick*="${quoteId}"]`)) {
+        convs.querySelector(`div[onclick*="${quoteId}"]`).click();
+      }
+    }, 300);
+  } catch (e) { showToast(`Error: ${e.message}`, 'error'); }
+};
+
+window.rejectQuote = async function(quoteId) {
+  if (!confirm('Reject this quote?')) return;
+  try {
+    await QuotesAPI.updateStatus(quoteId, 'rejected');
+    showToast('❌ Quote rejected', 'info');
+  } catch (e) { showToast(`Error: ${e.message}`, 'error'); }
+};
 

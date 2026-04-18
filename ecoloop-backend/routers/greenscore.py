@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.orm import Session
+from sqlalchemy import func, extract
 from typing import List
+from datetime import datetime
 from models.database import get_db, GreenScore, User, ScoreEvent
 from models.schemas import GreenScoreOut, ScoreEventOut, LeaderboardEntry, PlatformStats
 from core.auth import get_current_user
-from core.green_score import get_score_summary, award_points
+from core.green_score import get_score_summary, award_points, compute_tier
 
 router = APIRouter(prefix="/greenscore", tags=["Green Score"])
 
@@ -16,19 +18,53 @@ def my_green_score(
     summary = get_score_summary(db, current_user.id)
     score = summary["score"]
     events = summary["events"]
+
+    # ── Monthly progress: sum points earned this calendar month ──
+    now = datetime.utcnow()
+    monthly_pts = (
+        db.query(func.coalesce(func.sum(ScoreEvent.points), 0))
+        .filter(
+            ScoreEvent.user_id == current_user.id,
+            extract("year",  ScoreEvent.created_at) == now.year,
+            extract("month", ScoreEvent.created_at) == now.month,
+        )
+        .scalar()
+    ) or 0
+
+    # ── Monthly breakdown by category ───────────────────────────
+    monthly_by_cat = (
+        db.query(ScoreEvent.category, func.sum(ScoreEvent.points))
+        .filter(
+            ScoreEvent.user_id == current_user.id,
+            extract("year",  ScoreEvent.created_at) == now.year,
+            extract("month", ScoreEvent.created_at) == now.month,
+        )
+        .group_by(ScoreEvent.category)
+        .all()
+    )
+    cat_map = {cat: int(pts) for cat, pts in monthly_by_cat if cat}
+
     return {
         "score": {
-            "total": score.total_score,
-            "tier": score.tier,
-            "waste_listed_pts": score.waste_listed_pts,
-            "exchange_pts": score.exchange_pts,
-            "co2_pts": score.co2_pts,
-            "compliance_pts": score.compliance_pts,
-            "rating_pts": score.rating_pts,
-            "zero_waste_pts": score.zero_waste_pts,
+            "total":              score.total_score,
+            "tier":               score.tier,
+            "waste_listed_pts":   score.waste_listed_pts,
+            "exchange_pts":       score.exchange_pts,
+            "co2_pts":            score.co2_pts,
+            "compliance_pts":     score.compliance_pts,
+            "rating_pts":         score.rating_pts,
+            "zero_waste_pts":     score.zero_waste_pts,
         },
         "pts_to_next_tier": summary["pts_to_next_tier"],
-        "next_tier": summary["next_tier"],
+        "next_tier":        summary["next_tier"],
+        "monthly_pts":      int(monthly_pts),
+        "monthly_breakdown": {
+            "waste_listed":    cat_map.get("marketplace", cat_map.get("waste", 0)),
+            "deals_closed":    cat_map.get("exchange", 0),
+            "compliance":      cat_map.get("compliance", 0),
+            "co2":             cat_map.get("co2", 0),
+            "ai":              cat_map.get("ai", 0),
+        },
         "recent_events": [
             {"pts": e.points, "reason": e.reason, "date": e.created_at.isoformat()}
             for e in events
