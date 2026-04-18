@@ -74,6 +74,10 @@ const AuthAPI = {
     try { return JSON.parse(localStorage.getItem('ecosphere_user')); }
     catch { return null; }
   },
+  getCurrentUserId() {
+    const user = this.getUser();
+    return user ? user.id : null;
+  },
   isLoggedIn() { return !!getToken(); },
   async restoreSession() {
     if (this.isLoggedIn()) {
@@ -553,10 +557,19 @@ window.navigate = async function(page) {
   if (page === 'marketplace') await loadMarketplaceFromBackend(null);
   if (page === 'greenscore')  await loadGreenScoreFromBackend();
   if (page === 'leaderboard') await loadLeaderboardFromBackend();
+  if (page === 'chat') await loadChatConversations();
 };
 
 // Overall UI overrides
 document.addEventListener('DOMContentLoaded', () => {
+  // Restore session on page load (stay logged in after refresh)
+  AuthAPI.restoreSession().then(user => {
+    if (user) {
+      console.log('✅ Session restored for', user.email);
+      updateNavAuth();
+    }
+  });
+  
   updateNavAuth();
   
   // Replace button handlers

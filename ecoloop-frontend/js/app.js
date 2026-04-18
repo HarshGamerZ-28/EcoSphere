@@ -438,3 +438,124 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => { el.textContent = target; el.style.transition = 'all 0.4s'; }, 400);
   });
 });
+
+// ═══════════════════════════════════════════════════
+// CHAT FUNCTIONS
+// ═══════════════════════════════════════════════════
+
+let currentChatUser = null;
+
+async function loadChatConversations() {
+  if (!AuthAPI.isLoggedIn()) {
+    showToast('Please log in to access chat', 'error');
+    return;
+  }
+  try {
+    const conversations = await ChatAPI.conversations();
+    const convEl = document.getElementById('chat-conversations');
+    if (!conversations || conversations.length === 0) {
+      convEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);"><p>📭 No conversations yet</p><p style="font-size:12px;margin-top:8px;">Start chatting by accepting a quote!</p></div>';
+      return;
+    }
+    convEl.innerHTML = conversations.map(conv => `
+      <div class="chat-conversation-item" onclick="openChatWith(${conv.user_id}, '${conv.user_name}')" style="padding:12px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:all 0.3s;border-left:3px solid transparent;" onmouseover="this.style.background='#f9f9f9';this.style.borderLeft='3px solid var(--green-500)';" onmouseout="this.style.background='transparent';this.style.borderLeft='3px solid transparent';">
+        <div style="font-weight:600;font-size:14px;">${conv.user_name}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${conv.last_message || 'No messages yet'}</div>
+        ${conv.unread_count > 0 ? `<div style="background:var(--green-500);color:white;font-size:10px;padding:2px 6px;border-radius:var(--radius-full);width:fit-content;margin-top:6px;">${conv.unread_count} new</div>` : ''}
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error('Error loading conversations:', e);
+    showToast('Failed to load conversations', 'error');
+  }
+}
+
+async function openChatWith(userId, userName) {
+  currentChatUser = { id: userId, name: userName };
+  document.getElementById('chat-empty').style.display = 'none';
+  document.getElementById('chat-header').style.display = 'flex';
+  document.getElementById('chat-messages').style.display = 'flex';
+  document.getElementById('chat-input-area').style.display = 'flex';
+  document.getElementById('chat-partner-name').textContent = userName;
+  
+  // Mark as read
+  try {
+    await ChatAPI.markRead(userId);
+  } catch (e) { console.log('Error marking as read:', e); }
+  
+  // Load messages
+  loadChatMessages(userId);
+}
+
+async function loadChatMessages(userId) {
+  try {
+    const messages = await ChatAPI.messages(userId);
+    const msgEl = document.getElementById('chat-messages');
+    if (!messages || messages.length === 0) {
+      msgEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;">No messages yet. Start the conversation!</div>';
+      return;
+    }
+    msgEl.innerHTML = messages.map(msg => {
+      const isOwn = msg.sender_id === AuthAPI.getCurrentUserId();
+      return `
+        <div style="display:flex;margin-bottom:12px;${isOwn ? 'justify-content:flex-end;' : ''}">
+          <div style="max-width:70%;padding:12px;border-radius:var(--radius);background:${isOwn ? 'var(--green-500)' : 'var(--bg-secondary)'};color:${isOwn ? 'white' : 'var(--text)'};">
+            <div>${msg.message}</div>
+            <div style="font-size:11px;margin-top:6px;opacity:0.7;">${new Date(msg.created_at).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'})}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    // Scroll to bottom
+    msgEl.scrollTop = msgEl.scrollHeight;
+  } catch (e) {
+    console.error('Error loading messages:', e);
+    showToast('Failed to load messages', 'error');
+  }
+}
+
+async function sendChatMessage() {
+  if (!currentChatUser) {
+    showToast('Select a conversation first', 'error');
+    return;
+  }
+  const input = document.getElementById('chat-message-input');
+  const message = input.value.trim();
+  if (!message) return;
+  
+  try {
+    await ChatAPI.send(currentChatUser.id, message);
+    input.value = '';
+    loadChatMessages(currentChatUser.id);
+    loadChatConversations();
+  } catch (e) {
+    showToast('Failed to send message', 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// QUOTE ACCEPTANCE FUNCTIONS
+// ═══════════════════════════════════════════════════
+
+async function acceptQuote(quoteId) {
+  if (confirm('Accept this quote?')) {
+    try {
+      await QuoteManagementAPI.accept(quoteId);
+      showToast('Quote accepted! You can now chat with the buyer.', 'success');
+      loadChatConversations();
+    } catch (e) {
+      showToast('Failed to accept quote: ' + e.message, 'error');
+    }
+  }
+}
+
+async function rejectQuote(quoteId) {
+  if (confirm('Reject this quote?')) {
+    try {
+      await QuoteManagementAPI.reject(quoteId);
+      showToast('Quote rejected', 'info');
+    } catch (e) {
+      showToast('Failed to reject quote: ' + e.message, 'error');
+    }
+  }
+}
