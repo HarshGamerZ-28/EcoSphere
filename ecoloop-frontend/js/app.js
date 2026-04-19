@@ -522,8 +522,11 @@ async function loadChatConversations() {
       return;
     }
     convEl.innerHTML = conversations.map(conv => `
-      <div class="chat-conversation-item" onclick="openChatWith(${conv.user_id}, '${conv.user_name}')" style="padding:12px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:all 0.3s;border-left:3px solid transparent;" onmouseover="this.style.background='#f9f9f9';this.style.borderLeft='3px solid var(--green-500)';" onmouseout="this.style.background='transparent';this.style.borderLeft='3px solid transparent';">
-        <div style="font-weight:600;font-size:14px;">${conv.user_name}</div>
+      <div class="chat-conversation-item" onclick="openChatWith(${conv.quote_id}, ${conv.user_id}, '${conv.user_name}')" style="padding:12px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:all 0.3s;border-left:3px solid transparent;" onmouseover="this.style.background='#f9f9f9';this.style.borderLeft='3px solid var(--green-500)';" onmouseout="this.style.background='transparent';this.style.borderLeft='3px solid transparent';">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-weight:600;font-size:14px;">${conv.user_name}</div>
+          <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation(); showProgress(${conv.quote_id})" style="font-size:10px;color:var(--green-600);padding:2px 6px;border:1px solid var(--green-100);">📦 Progress</button>
+        </div>
         <div style="font-size:12px;color:var(--text-muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${conv.last_message || 'No messages yet'}</div>
         ${conv.unread_count > 0 ? `<div style="background:var(--green-500);color:white;font-size:10px;padding:2px 6px;border-radius:var(--radius-full);width:fit-content;margin-top:6px;">${conv.unread_count} new</div>` : ''}
       </div>
@@ -534,33 +537,29 @@ async function loadChatConversations() {
   }
 }
 
-async function openChatWith(userId, userName) {
-  currentChatUser = { id: userId, name: userName };
+async function openChatWith(quoteId, userId, userName) {
+  currentChatUser = { id: userId, name: userName, quoteId: quoteId };
   document.getElementById('chat-empty').style.display = 'none';
   document.getElementById('chat-header').style.display = 'flex';
   document.getElementById('chat-messages').style.display = 'flex';
   document.getElementById('chat-input-area').style.display = 'flex';
   document.getElementById('chat-partner-name').textContent = userName;
   
-  // Mark as read
-  try {
-    await ChatAPI.markRead(userId);
-  } catch (e) { console.log('Error marking as read:', e); }
-  
   // Load messages
-  loadChatMessages(userId);
+  loadChatMessages(quoteId);
 }
 
-async function loadChatMessages(userId) {
+async function loadChatMessages(quoteId) {
   try {
-    const messages = await ChatAPI.messages(userId);
+    const messages = await ChatAPI.messages(quoteId);
     const msgEl = document.getElementById('chat-messages');
     if (!messages || messages.length === 0) {
       msgEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;">No messages yet. Start the conversation!</div>';
       return;
     }
+    const user = AuthAPI.getUser();
     msgEl.innerHTML = messages.map(msg => {
-      const isOwn = msg.sender_id === AuthAPI.getCurrentUserId();
+      const isOwn = msg.sender_id === user.id;
       return `
         <div style="display:flex;margin-bottom:12px;${isOwn ? 'justify-content:flex-end;' : ''}">
           <div style="max-width:70%;padding:12px;border-radius:var(--radius);background:${isOwn ? 'var(--green-500)' : 'var(--bg-secondary)'};color:${isOwn ? 'white' : 'var(--text)'};">
@@ -588,12 +587,84 @@ async function sendChatMessage() {
   if (!message) return;
   
   try {
-    await ChatAPI.send(currentChatUser.id, message);
+    await ChatAPI.send(currentChatUser.quoteId, currentChatUser.id, message);
     input.value = '';
-    loadChatMessages(currentChatUser.id);
-    loadChatConversations();
+    loadChatMessages(currentChatUser.quoteId);
   } catch (e) {
     showToast('Failed to send message', 'error');
+  }
+}
+
+// ── Progress Tracking ──────────────────────────────
+async function showProgress(quoteId) {
+  try {
+    const updates = await ChatAPI.getProgress(quoteId);
+    const user = AuthAPI.getUser();
+    
+    // Simple Modal for progress
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay show';
+    modal.style.zIndex = '2000';
+    modal.innerHTML = `
+      <div class="modal" style="max-width:500px;">
+        <h3 style="margin-bottom:20px;font-family:var(--font-head);">Deal Progress Tracker</h3>
+        <div class="timeline" style="margin-bottom:20px;">
+          ${updates.length === 0 ? '<p style="text-align:center;color:var(--text-muted);">No progress updates yet.</p>' : 
+            updates.map((u, i) => `
+              <div style="display:flex;gap:15px;margin-bottom:15px;position:relative;">
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                  <div style="width:12px;height:12px;border-radius:50%;background:var(--green-600);z-index:1;"></div>
+                  ${i < updates.length - 1 ? '<div style="width:2px;flex:1;background:var(--green-200);margin:4px 0;"></div>' : ''}
+                </div>
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:var(--text-primary);">${u.stage}</div>
+                  <div style="font-size:12px;color:var(--text-muted);">${new Date(u.created_at).toLocaleDateString()} · ${new Date(u.created_at).toLocaleTimeString()}</div>
+                  ${u.note ? `<div style="font-size:13px;background:var(--bg-secondary);padding:8px;border-radius:4px;margin-top:5px;">${u.note}</div>` : ''}
+                </div>
+              </div>
+            `).join('')
+          }
+        </div>
+        
+        <!-- Add Update Form (Sellers Only) -->
+        <div id="add-progress-area" style="border-top:1px solid var(--border);padding-top:15px;display:none;">
+          <h4 style="font-size:14px;margin-bottom:10px;">Update Progress (Seller Only)</h4>
+          <select id="new-stage" class="form-select" style="margin-bottom:10px;">
+            <option>Material Inspection</option>
+            <option>Quality Report Generated</option>
+            <option>Payment Received</option>
+            <option>Logistics Scheduled</option>
+            <option>Material Shipped</option>
+            <option>Deal Completed</option>
+          </select>
+          <textarea id="stage-note" class="form-textarea" style="font-size:13px;min-height:60px;" placeholder="Optional note..."></textarea>
+          <button class="btn btn-primary btn-sm" style="width:100%;margin-top:10px;" onclick="updateProgress(${quoteId})">Update Stage</button>
+        </div>
+
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:15px;" onclick="this.closest('.modal-overlay').remove()">Close</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Show update area if user is the seller (we need to check this via API or state)
+    // For now, let's assume if they can see the conversation, we'll let the backend handle the permission check
+    document.getElementById('add-progress-area').style.display = 'block';
+
+  } catch (e) {
+    showToast('Failed to load progress', 'error');
+  }
+}
+
+async function updateProgress(quoteId) {
+  const stage = document.getElementById('new-stage').value;
+  const note = document.getElementById('stage-note').value;
+  try {
+    await ChatAPI.addProgress(quoteId, stage, note);
+    showToast('Progress updated!', 'success');
+    document.querySelector('.modal-overlay').remove();
+    showProgress(quoteId);
+  } catch (e) {
+    showToast('Only the seller can update progress', 'error');
   }
 }
 

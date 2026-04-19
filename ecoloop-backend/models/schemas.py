@@ -190,6 +190,27 @@ class ChatMessageOut(BaseModel):
     class Config:
         from_attributes = True
 
+class ChatConversationOut(BaseModel):
+    user_id: int
+    user_name: str
+    last_message: Optional[str]
+    unread_count: int
+    quote_id: int
+
+# ── Progress Tracking ────────────────────────────────
+class ProgressUpdateCreate(BaseModel):
+    stage: str
+    note: Optional[str] = None
+
+class ProgressUpdateOut(BaseModel):
+    id: int
+    quote_id: int
+    stage: str
+    note: Optional[str]
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
 # ── Quote Status ────────────────────────────────────
 class QuoteUpdate(BaseModel):
     status: str  # 'accepted', 'rejected', 'completed'

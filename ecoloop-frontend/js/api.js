@@ -189,17 +189,26 @@ const AIAPI = {
 
 // ── Chat API ───────────────────────────────────────
 const ChatAPI = {
+  async conversations() {
+    return await apiFetch('/chat/conversations');
+  },
+  async messages(quoteId) {
+    return await apiFetch(`/chat/conversation/${quoteId}`);
+  },
   async send(quoteId, receiverId, message) {
     return await apiFetch('/chat/send', {
       method: 'POST',
       body: JSON.stringify({ quote_id: quoteId, receiver_id: receiverId, message })
     });
   },
-  async getConversation(quoteId) {
-    return await apiFetch(`/chat/conversation/${quoteId}`);
+  async getProgress(quoteId) {
+    return await apiFetch(`/chat/progress/${quoteId}`);
   },
-  async getUnreadCount() {
-    return await apiFetch('/chat/unread-count');
+  async addProgress(quoteId, stage, note) {
+    return await apiFetch(`/chat/progress/${quoteId}`, {
+      method: 'POST',
+      body: JSON.stringify({ stage, note })
+    });
   }
 };
 
@@ -627,7 +636,7 @@ window.openChatConversation = async function(quoteId, partnerName) {
 
   // Load messages
   try {
-    const messages = await ChatAPI.getConversation(quoteId);
+    const messages = await ChatAPI.messages(quoteId);
     const user = AuthAPI.getUser();
     const msgEl = document.getElementById('chat-messages');
     if (!messages || !messages.length) {
@@ -807,7 +816,7 @@ window.sendChatMessage = async function() {
     input.value = '';
     // Reload messages
     const msgEl = document.getElementById('chat-messages');
-    const messages = await ChatAPI.getConversation(window._activeChatQuoteId);
+    const messages = await ChatAPI.messages(window._activeChatQuoteId);
     if (messages && messages.length > 0) {
       msgEl.innerHTML = messages.map(m => {
         const isMine = m.sender_id === user?.id;

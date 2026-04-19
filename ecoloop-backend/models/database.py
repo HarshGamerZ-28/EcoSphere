@@ -150,6 +150,8 @@ class QuoteRequest(Base):
     buyer            = relationship("User", foreign_keys=[buyer_id], back_populates="sent_quotes")
     seller           = relationship("User", foreign_keys=[seller_id], back_populates="received_quotes")
     payment          = relationship("Payment", back_populates="quote", uselist=False)
+    chat_messages    = relationship("ChatMessage", back_populates="quote")
+    progress_updates = relationship("ProgressUpdate", back_populates="quote", order_by="ProgressUpdate.created_at")
 
 class AIMatchLog(Base):
     __tablename__ = "ai_match_logs"
@@ -192,6 +194,17 @@ class ChatMessage(Base):
     is_read         = Column(Boolean, default=False)
     created_at      = Column(DateTime, default=datetime.utcnow)
 
-    quote           = relationship("QuoteRequest")
+    quote           = relationship("QuoteRequest", back_populates="chat_messages")
     sender          = relationship("User", foreign_keys=[sender_id])
     receiver        = relationship("User", foreign_keys=[receiver_id])
+
+class ProgressUpdate(Base):
+    """Tracking the stages of a waste exchange deal"""
+    __tablename__ = "progress_updates"
+    id          = Column(Integer, primary_key=True, index=True)
+    quote_id    = Column(Integer, ForeignKey("quote_requests.id"), nullable=False)
+    stage       = Column(String, nullable=False) # e.g., "Quote Accepted", "Material Inspection", "Payment Done", "Logistics Arranged", "Completed"
+    note        = Column(Text, nullable=True)
+    created_at  = Column(DateTime, default=datetime.utcnow)
+
+    quote       = relationship("QuoteRequest", back_populates="progress_updates")
