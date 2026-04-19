@@ -545,8 +545,48 @@ async function openChatWith(quoteId, userId, userName) {
   document.getElementById('chat-input-area').style.display = 'flex';
   document.getElementById('chat-partner-name').textContent = userName;
   
+  // Add Reject Offer button if not already present
+  let rejectBtn = document.getElementById('chat-reject-btn');
+  if (!rejectBtn) {
+    rejectBtn = document.createElement('button');
+    rejectBtn.id = 'chat-reject-btn';
+    rejectBtn.className = 'btn btn-outline btn-xs';
+    rejectBtn.style.color = '#dc2626';
+    rejectBtn.style.borderColor = '#dc2626';
+    rejectBtn.style.marginLeft = 'auto';
+    rejectBtn.textContent = 'Reject Offer';
+    document.getElementById('chat-header').querySelector('div').appendChild(rejectBtn);
+  }
+  rejectBtn.onclick = () => rejectOffer(quoteId, userName);
+  
   // Load messages
   loadChatMessages(quoteId);
+}
+
+async function rejectOffer(quoteId, partnerName) {
+  if (!confirm(`Are you sure you want to reject the offer from ${partnerName}? This will close the chat.`)) return;
+  
+  try {
+    // Send automated rejection message
+    await ChatAPI.send(quoteId, currentChatUser.id, "System: This offer has been formally declined by the seller. The conversation is now closed.");
+    
+    // Update quote status to rejected
+    await QuoteManagementAPI.reject(quoteId);
+    
+    showToast(`Offer from ${partnerName} rejected.`, 'info');
+    
+    // Reset chat view
+    currentChatUser = null;
+    document.getElementById('chat-empty').style.display = 'flex';
+    document.getElementById('chat-header').style.display = 'none';
+    document.getElementById('chat-messages').style.display = 'none';
+    document.getElementById('chat-input-area').style.display = 'none';
+    
+    // Reload conversations list
+    loadChatConversations();
+  } catch (e) {
+    showToast('Failed to reject offer: ' + e.message, 'error');
+  }
 }
 
 async function loadChatMessages(quoteId) {

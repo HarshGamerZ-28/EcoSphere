@@ -125,7 +125,21 @@ const ListingsAPI = {
     return await apiFetch(`/listings/${id}`, { method: 'DELETE' });
   },
   async myListings() { return await apiFetch('/listings/my/listings'); },
+  async deleteListing(id) {
+    return await apiFetch(`/listings/${id}`, { method: 'DELETE' });
+  }
 };
+
+async function removeListing(id) {
+  if (!confirm('Are you sure you want to permanently remove this listing?')) return;
+  try {
+    await ListingsAPI.deleteListing(id);
+    showToast('Listing removed successfully', 'success');
+    await loadMarketplaceFromBackend();
+  } catch (e) {
+    showToast('Failed to remove listing: ' + e.message, 'error');
+  }
+}
 
 // ── Quotes API ────────────────────────────────────
 const QuotesAPI = {
@@ -291,12 +305,22 @@ async function loadMarketplaceFromBackend(category) {
       }
       const grid = document.getElementById('marketplace-grid');
       if (grid) {
-        grid.innerHTML = APP.listings.map(l => `
+        grid.innerHTML = APP.listings.map(l => {
+          const isMine = user && l.owner_id === user.id;
+          return `
           <div class="listing-card card-hover" onclick="showListingDetail(${l.id})">
             <div class="listing-card-body">
               <div class="listing-card-header">
                 <span class="badge ${getCategoryBadgeClass(l.category)}">${l.category}</span>
-                ${l.verified ? '<div class="listing-verified"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="#1e7a3e" stroke-width="1.8" stroke-linecap="round"/></svg></div>' : ''}
+                <div style="display:flex; gap:6px; align-items:center;">
+                  ${l.verified ? '<div class="listing-verified"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="#1e7a3e" stroke-width="1.8" stroke-linecap="round"/></svg></div>' : ''}
+                  ${isMine ? `
+                    <button class="btn btn-ghost btn-xs" style="color:#dc2626; padding:2px;" title="Remove Listing" 
+                      onclick="event.stopPropagation(); removeListing(${l.id})">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>
+                    </button>
+                  ` : ''}
+                </div>
               </div>
               <div class="listing-title">${l.title}</div>
               <div class="listing-company">${l.company}</div>
@@ -315,7 +339,7 @@ async function loadMarketplaceFromBackend(category) {
               </button>
             </div>
           </div>
-        `).join('');
+        `;}).join('');
       }
     }
 
