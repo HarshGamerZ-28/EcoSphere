@@ -309,12 +309,69 @@ function renderLeaderboard() {
 
 // ─── AI Modal logic removed ──────────────────────
 
-// ─── AI Insights ──────────────────────────────────
+async function runAIMatcher() {
+  if (typeof runAIMatcherBackend === 'function') {
+    return await runAIMatcherBackend();
+  }
+  showToast('AI Matcher service starting...', 'info');
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) { showToast('Enter email and password', 'error'); return; }
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Logging in…';
+  try {
+    await AuthAPI.login(email, password);
+    closeAuthModal();
+    updateNavAuth();
+    showToast('Welcome back to EcoSphere! 🌿', 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Log In';
+}
+
+async function doRegister() {
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const company  = document.getElementById('reg-company').value.trim();
+  const location = document.getElementById('reg-location').value.trim();
+  if (!email || !password || !company) { showToast('Fill all required fields', 'error'); return; }
+  const btn = document.getElementById('register-btn');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  try {
+    await AuthAPI.register({ email, password, company_name: company, location });
+    closeAuthModal();
+    updateNavAuth();
+    showToast(`Welcome to EcoSphere, ${company}! 🌿 +30 Green Points earned`, 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Create Account';
+}
+
 async function getWasteInsight() {
+  if (typeof getWasteInsightBackend === 'function') {
+    return await getWasteInsightBackend();
+  }
   const category = document.getElementById('matcher-cat').value;
   const name = document.getElementById('matcher-name').value.trim();
   if (!name && !category) { showToast('Enter waste details first', 'error'); return; }
   showToast('Connecting to AI insights service...', 'info');
+}
+
+async function aiSuggestDesc() {
+  if (typeof aiSuggestDescBackend === 'function') {
+    return await aiSuggestDescBackend();
+  }
+  const title = document.getElementById('sell-title').value.trim();
+  if (!title) { showToast('Enter waste name first', 'error'); return; }
+  showToast('AI generating description...', 'info');
+}
+
+async function submitListing() {
+  if (typeof submitListingToBackend === 'function') {
+    return await submitListingToBackend();
+  }
+  showToast('Submitting listing...', 'info');
 }
 
 // ─── Circular Economy Section ─────────────────────

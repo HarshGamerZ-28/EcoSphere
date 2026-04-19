@@ -905,20 +905,9 @@ window.submitListing = submitListing;
 window.aiSuggestDesc = aiSuggestDesc;
 window.subscribeNewsletter = subscribeNewsletter;
 window.getWasteInsight = getWasteInsight;
-window.runAIMatcher = window.runAIMatcher || function() { showToast('AI Matcher not implemented.','info'); };
-window.showToast = showToast;
-window.awardGreenPoints = awardGreenPoints;
-window.switchAuthTab = window.switchAuthTab || function(tab) {
-  document.getElementById('auth-tab-login').classList.toggle('active', tab==='login');
-  document.getElementById('auth-tab-register').classList.toggle('active', tab==='register');
-  document.getElementById('auth-login-form').style.display = tab==='login' ? '' : 'none';
-  document.getElementById('auth-register-form').style.display = tab==='register' ? '' : 'none';
-};
-window.closeAuthModal = window.closeAuthModal || function() {
-  document.getElementById('auth-modal').classList.remove('show');
-};
-window.doLogin = window.doLogin || function() { showToast('Login not implemented.','info'); };
-window.doRegister = window.doRegister || function() { showToast('Register not implemented.','info'); };
+window.runAIMatcher = runAIMatcher;
+window.doLogin = doLogin;
+window.doRegister = doRegister;
 </script>
 
 </body>
