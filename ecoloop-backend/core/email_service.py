@@ -109,7 +109,6 @@ def send_quote_received(
 ):
     subject = f"🌿 New Quote Request for \"{listing_title}\" — EcoSphere"
     # Accept / Reject links go back to the platform where the seller manages quotes
-    platform_link = f"{APP_URL}/#chat"
     body = f"""
 <p>Hi <strong>{seller_company}</strong>,</p>
 <p>Great news! You've received a new quote request on EcoSphere.</p>
@@ -122,16 +121,14 @@ def send_quote_received(
 </div>
 <p>Log in to EcoSphere and respond to this quote request:</p>
 <div class="action-row">
-  <a href="{APP_URL}" class="cta">✅ Accept Quote</a>
-  <a href="{APP_URL}" class="cta-danger">❌ Reject Quote</a>
-  <a href="{platform_link}" class="cta-chat">💬 Chat with Buyer</a>
+  <a href="{APP_URL}/#chat" class="cta">💬 Accept & Chat</a>
+  <a href="{APP_URL}" class="cta-outline">👀 View Request</a>
 </div>
 <p style="font-size:13px;color:#6b7a6e;">
-  ℹ️ Click any button above to open the EcoSphere platform and manage this quote from your dashboard.
-  Accepting will notify the buyer and open a chat channel.
+  ℹ️ Click "Accept & Chat" to open the EcoSphere platform and start a conversation with the buyer.
 </p>
 """
-    plain = f"New quote request from {buyer_company} for {listing_title}. Quote #{quote_id}. Login to {APP_URL} to accept/reject."
+    plain = f"New quote request from {buyer_company} for {listing_title}. Quote #{quote_id}. Login to {APP_URL} to respond."
     send_email(seller_email, subject, body, plain)
 
 
@@ -154,7 +151,7 @@ def send_quote_confirmation(
   <p>🔖 <strong>Quote ID:</strong> #{quote_id}</p>
 </div>
 <p>You'll receive an email notification once the seller responds to your request.</p>
-<a href="{APP_URL}" class="cta">Track Your Requests →</a>
+<a href="{APP_URL}/#marketplace" class="cta">Track Your Requests →</a>
 <p style="font-size:13px;color:#6b7a6e;">
   Once the seller accepts your quote, a chat channel will open between you and {seller_company}.
 </p>

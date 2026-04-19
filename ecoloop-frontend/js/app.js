@@ -35,12 +35,12 @@ function showToast(message, type = 'success') {
 // ─── Green Score State ─────────────────────────────
 const scoreData = {
   criteria: [
-    { name: 'Waste listed on platform', pts: 180, max: 200 },
-    { name: 'Successful exchanges completed', pts: 240, max: 300 },
-    { name: 'CO₂ emissions avoided', pts: 120, max: 200 },
-    { name: 'Compliance documents uploaded', pts: 80, max: 100 },
-    { name: 'Buyer/seller rating avg (4.2★)', pts: 84, max: 100 },
-    { name: 'Zero-waste goal progress', pts: 16, max: 100 },
+    { name: 'Waste listed on platform', pts: 200, max: 500 },
+    { name: 'Successful exchanges completed', pts: 300, max: 600 },
+    { name: 'CO₂ emissions avoided', pts: 150, max: 300 },
+    { name: 'Compliance documents uploaded', pts: 120, max: 200 },
+    { name: 'Buyer/seller rating avg (4.5★)', pts: 100, max: 150 },
+    { name: 'Zero-waste goal progress', pts: 50, max: 100 },
   ],
   activity: [
     { text: 'Listed 500kg HDPE Granules on marketplace', pts: '+45', date: 'Apr 13, 2026' },
@@ -413,7 +413,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  navigate('home');
+  // Check URL hash for direct navigation
+  const hash = window.location.hash.replace('#', '');
+  if (hash && ['home', 'marketplace', 'sell', 'matcher', 'chat', 'greenscore', 'contact'].includes(hash)) {
+    navigate(hash);
+  } else {
+    navigate('home');
+  }
+  
   renderMarketplace();
   initEconomyAnimation();
 

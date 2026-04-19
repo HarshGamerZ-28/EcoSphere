@@ -2,17 +2,17 @@ from sqlalchemy.orm import Session
 from models.database import GreenScore, ScoreEvent, User
 from datetime import datetime
 
-TIER_THRESHOLDS = {"Bronze": 0, "Silver": 500, "Gold": 1000}
+TIER_THRESHOLDS = {"Bronze": 0, "Silver": 400, "Gold": 800}
 
 POINT_RULES = {
-    "waste_listed":      45,
-    "exchange_completed": 120,
-    "compliance_upload":  40,
-    "rating_received":    20,
-    "ai_matcher_used":    25,
-    "profile_completed":  30,
-    "quote_sent":          5,
-    "co2_per_100kg":      10,
+    "waste_listed":      50,
+    "exchange_completed": 150,
+    "compliance_upload":  60,
+    "rating_received":    25,
+    "ai_matcher_used":    30,
+    "profile_completed":  50,
+    "quote_sent":          10,
+    "co2_per_100kg":      15,
 }
 
 def get_or_create_score(db: Session, user_id: int) -> GreenScore:
@@ -31,15 +31,15 @@ def award_points(db: Session, user_id: int, event_type: str, reason: str,
 
     # Route pts to correct sub-bucket
     if event_type == "waste_listed":
-        score.waste_listed_pts = min(score.waste_listed_pts + pts, 200)
+        score.waste_listed_pts += pts
     elif event_type == "exchange_completed":
         score.exchange_pts += pts
     elif event_type in ("compliance_upload", "profile_completed"):
-        score.compliance_pts = min(score.compliance_pts + pts, 100)
+        score.compliance_pts += pts
     elif event_type == "rating_received":
-        score.rating_pts = min(score.rating_pts + pts, 100)
+        score.rating_pts += pts
     elif event_type == "co2_per_100kg":
-        score.co2_pts = min(score.co2_pts + pts, 200)
+        score.co2_pts += pts
     else:
         score.waste_listed_pts += pts  # default bucket
 
@@ -54,9 +54,9 @@ def award_points(db: Session, user_id: int, event_type: str, reason: str,
     return pts
 
 def compute_tier(score: int) -> str:
-    if score >= 1000:
+    if score >= 800:
         return "Gold"
-    if score >= 500:
+    if score >= 400:
         return "Silver"
     return "Bronze"
 
@@ -66,7 +66,7 @@ def get_score_summary(db: Session, user_id: int) -> dict:
               .filter(ScoreEvent.user_id == user_id)
               .order_by(ScoreEvent.created_at.desc())
               .limit(10).all())
-    next_tier_pts = 1000 if score.total_score >= 1000 else (1000 if score.tier == "Silver" else 500)
+    next_tier_pts = 800 if score.total_score >= 800 else (800 if score.tier == "Silver" else 400)
     pts_to_next = max(0, next_tier_pts - score.total_score)
     return {
         "score": score,
