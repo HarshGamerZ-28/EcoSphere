@@ -5,7 +5,9 @@
 
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:8000/api'
-  : 'https://ecosphere-fec3.onrender.com/api';
+  : (window.location.hostname.includes('vercel.app') 
+      ? 'https://ecosphere-fec3.onrender.com/api' // Replace this with your actual Render/Backend URL
+      : '/api');
 
 // ── Auth token ────────────────────────────────────
 function getToken() { return localStorage.getItem('ecosphere_token'); }
@@ -44,6 +46,9 @@ async function apiFetch(path, options = {}) {
     if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
     return data;
   } catch (e) {
+    if (e.message === 'Failed to fetch') {
+      throw new Error('❌ Cannot connect to backend server. Check if the backend is running at: ' + API_BASE);
+    }
     throw e;
   }
 }

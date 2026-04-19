@@ -23,12 +23,10 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
-    # Seed green score
-    score = GreenScore(user_id=user.id, total_score=0, tier="Bronze")
-    db.add(score)
-    db.commit()
-    # Award profile-complete points
+    
+    # Award profile-complete points (this also seeds the GreenScore)
     award_points(db, user.id, "profile_completed", "Company profile created", category="onboarding")
+    
     token = create_access_token({"sub": str(user.id)})
     return Token(access_token=token, user=UserOut.model_validate(user))
 

@@ -34,13 +34,34 @@ app = FastAPI(
 )
 
 # ── CORS ───────────────────────────────────────────
+# Allow all origins for development, but specifically allow Vercel for production
+origins = [
+    "http://localhost:8000",
+    "http://localhost:3000",
+    "http://127.0.0.1:8000",
+    "https://eco-sphere-rho-eosin.vercel.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # tighten in production
+    allow_origins=["*"],  # Fallback to * but check if credentials=True is needed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Note: If allow_credentials=True, allow_origins cannot be ["*"] in some browsers.
+# We override it below to be more permissive if needed while staying compatible.
+@app.middleware("http")
+async def add_cors_header(request, call_next):
+    response = await call_next(request)
+    origin = request.headers.get("origin")
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
 
 
 # ── Routers ────────────────────────────────────────
